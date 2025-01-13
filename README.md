@@ -2,7 +2,7 @@
 
 > ⚠️ This tool is in early stages of development
 
-ncbi-cluster-tracker is a tool for creating static, shareable HTML reports for tracking SNP clusters within the [NCBI Pathogen Detection](https://www.ncbi.nlm.nih.gov/pathogens/) system. Given an input sample sheet CSV containing BioSample IDs for isolates of interest (referred to as "internal isolates"), the tool will create a report with a high-level overview of all of the clusters associated with these isolates. For each cluster the output report will link to the corresponding NCBI Pathogen Detection tree  along with additional visualizations, such as a SNP distance matrix heatmaps. Any additional metadata or alternate IDs provided in the sample sheet will be used to further annotate the internal isolates within the report.
+ncbi-cluster-tracker is a tool for creating static, shareable HTML reports for tracking SNP clusters within the [NCBI Pathogen Detection](https://www.ncbi.nlm.nih.gov/pathogens/) system. Given an input sample sheet CSV containing BioSample IDs for isolates of interest (referred to as "internal isolates"), the tool will create a report with a high-level overview of all of the clusters associated with these isolates. For each cluster the output report will link to the corresponding NCBI Pathogen Detection tree and will display addition visualizations such as a pairwise SNP distance matrix heatmap. Any additional metadata or alternate IDs provided in the sample sheet will be used to further annotate the internal isolates within the report.
 
 ### Clusters tab
 The Clusters tab contains a table of clusters and their isolate counts. Columns in the table can be sorted and filtered. Below the table is a Gantt chart showing the timeline of when the first isolate appeared in each cluster and when the most recent isolate was added. 
@@ -10,7 +10,7 @@ The Clusters tab contains a table of clusters and their isolate counts. Columns 
 ![Clusters tab](assets/clusters.png)
 
 ### Isolates tab
-The Isolates tab contains a table with details about the internal isolates, such as which clusterd they belong to (if any), their BioSample metadata, and any custom metadata provided in the sample sheet. SQL can be used directly in the report to query this table and the Clusters table.
+The Isolates tab contains a table with details about the internal isolates, such as which cluster they belong to (if any), their BioSample metadata, and any custom metadata provided in the sample sheet. SQL can be used directly in the report to query this table and the Clusters table.
 
 ![Isolates tab](assets/isolates.png)
 
@@ -28,7 +28,7 @@ This section of the report also provides a histogram showing the isolate counts 
 ![Cluster details histogram](assets/cluster_details_histogram.png)
 
 ## Requirements
-Currently a Google Cloud Platform account is required to use this tool, since it relies on NCBI's public Google BigQuery [`pdbrowser` dataset](https://www.ncbi.nlm.nih.gov/pathogens/docs/gcp/) to download isolate and cluster metadata.
+Currently a Google Cloud Platform account is required to use this tool, since it relies on NCBI's public Google BigQuery [`pdbrowser`](https://www.ncbi.nlm.nih.gov/pathogens/docs/gcp/) dataset to download isolate and cluster metadata.
 
 ## Installation
 > ⚠️ Currently installation requires cloning the repository, but the plan is for the tool to eventually be installable directly through Conda or pip.
