@@ -119,9 +119,7 @@ class ClusterReport:
         ]
         internal_renamer = '⭐' + internal_renamer  
         renamer = pd.concat([internal_renamer, external_renamer])
-        print(matrix)
         matrix = matrix.rename(columns=dict(renamer), index=dict(renamer))
-        print(matrix)
         self.metadata = self.metadata.reset_index()
         return matrix
     
