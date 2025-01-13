@@ -259,7 +259,7 @@ dependencies:
   - zstd=1.5.6=hc292b87_0
   - pip:
       - altair==5.5.0
-      - arakawa==0.0.6
+      - arakawa==0.0.9a3
       - base64io==1.0.3
       - chardet==5.2.0
       - dominate==2.9.1
@@ -269,7 +269,7 @@ dependencies:
       - loguru==0.7.3
       - lxml==5.3.0
       - micawber==0.5.6
-      - multimethod==1.12
+      - multimethod==2.0
       - narwhals==1.17.0
       - ncbi-cluster-tracker==0.0.0
       - pyarrow==18.1.0
