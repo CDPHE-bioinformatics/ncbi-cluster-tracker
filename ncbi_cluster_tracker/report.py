@@ -383,8 +383,10 @@ def create_final_report(
         )
     )
 
-    #TODO Like multiqc, include JS directly in HTML (no href) so report
-    # can be viewed offline (and security) 
+    ar.save_report(
+        report,
+        path=os.path.join(os.environ['NCT_OUT_DIR'], 'clusters.html'),
+        standalone=True,
+    )
 
-    ar.save_report(report, path=os.path.join(os.environ['NCT_OUT_DIR'], 'clusters.html'))
 
