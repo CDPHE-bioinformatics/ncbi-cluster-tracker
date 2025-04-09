@@ -20,11 +20,11 @@ class ClusterReport:
     ]
 
     def __init__(
-            self, 
-            cluster: cluster.Cluster,
-            metadata: pd.DataFrame,
-            clusters_df: pd.DataFrame,
-        ):
+        self, 
+        cluster: cluster.Cluster,
+        metadata: pd.DataFrame,
+        clusters_df: pd.DataFrame,
+    ):
 
         self.cluster = cluster
         self.clusters_df = clusters_df
@@ -218,10 +218,9 @@ class ClusterReport:
                 value_vars=list(star_cols.values()),
             )
         )
-        path = os.path.join(
-            os.environ['NCT_OUT_DIR'],
-            f'{self.cluster.name}_labels.txt'
-        )
+        subdir = os.path.join(os.environ['NCT_OUT_DIR'], 'labels')
+        os.makedirs(subdir, exist_ok=True)
+        path = os.path.join(subdir, f'{self.cluster.name}_labels.txt')
         custom_labels.to_csv(path, sep='\t', index=False, header=False) 
         attachment = ar.Attachment(file=path)
         return attachment 

@@ -1,3 +1,4 @@
+import glob
 import os
 
 import dendropy # type: ignore
@@ -13,6 +14,7 @@ class Cluster:
 
     def __init__(self, name: str, internal_isolates: list[str]):
         self.name = name
+        self.cluster_id = name.split('.')[0]
         self.internal_isolates = set(internal_isolates)
         self.external_isolates: set[str] | None = None
         self.filtered_matrix_message: str | None = None
@@ -23,8 +25,10 @@ class Cluster:
         Generate distance matrix from downloaded Pathogen Detection tree,
         with number of isolates filtered down to a reasonably viewable number.
         """
-        tree_file = f'{self.name}.newick_tree.newick'
-        tree_path = os.path.join(os.environ['NCT_OUT_DIR'], 'snps', tree_file)
+        tree_file_glob = f'{self.cluster_id}*.newick_tree.newick'
+        tree_path = glob.glob(
+            os.path.join(os.environ['NCT_OUT_DIR'], 'snps', tree_file_glob
+        ))[0]
         tree = dendropy.Tree.get_from_path(tree_path, schema='newick')
 
         internal_taxa = {t for t in tree.taxon_namespace
