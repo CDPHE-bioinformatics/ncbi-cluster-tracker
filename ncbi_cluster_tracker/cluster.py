@@ -111,4 +111,3 @@ def create_clusters(
         ]['target_acc'].tolist()
         clusters.append(cluster.Cluster(cluster_name, internal_isolates))
     return clusters
-

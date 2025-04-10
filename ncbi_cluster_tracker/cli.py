@@ -11,6 +11,10 @@ def parse_args() -> argparse.Namespace:
         help='CSV sample sheet with required "biosample" column and any additional metadata columns. Use "id" column for alternate isolate IDs',
     )
     parser.add_argument(
+        '--compare-dir', '-c',
+        help='Path to report directory to compare isolate counts, defaults to _current symlink'
+    )
+    parser.add_argument(
         '--use-local',
         help='Do not query BigQuery or NCBI, assumes data has already been downloaded',
         action=argparse.BooleanOptionalAction,

@@ -1,3 +1,4 @@
+import glob
 import os
 
 import arakawa as ar  # type: ignore
@@ -321,8 +322,57 @@ def create_cluster_reports(
     return cluster_reports
 
 
+def compare_counts(
+    clusters_df: pd.DataFrame,
+    old_clusters_df: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """
+    Compare cluster isolate counts between previous report, if provided, and add
+    differences to the `clusters_df` DataFrame.
+    """
+    clusters_df['cluster_base'] = clusters_df['cluster'].str.split('.').str[0]
+
+    if old_clusters_df is None:
+        clusters_df['change'] = 'new cluster'
+        return clusters_df
+
+    old_clusters_df['cluster_base'] = old_clusters_df['cluster'].str.split('.').str[0]
+    clusters_df = clusters_df.astype({'internal_count': 'Int64', 'external_count': 'Int64'})
+    old_clusters_df = old_clusters_df.astype({'internal_count': 'Int64', 'external_count': 'Int64'})
+
+    compare_df = pd.merge(
+        clusters_df[['cluster_base', 'internal_count', 'external_count']],
+        old_clusters_df[['cluster_base', 'internal_count', 'external_count']],
+        on='cluster_base',
+        how='left',
+        suffixes=('_new', '_old'),
+    )
+    compare_df['internal_change'] = compare_df['internal_count_new'] - compare_df['internal_count_old']
+    compare_df['external_change'] = compare_df['external_count_new'] - compare_df['external_count_old']
+
+    def create_change_column(row):
+        if pd.isna(row['internal_change']) or pd.isna(row['external_change']):
+            return 'new cluster'
+        internal_prefix = '+' if row['internal_change'] >= 0 else ''
+        external_prefix = '+' if row['external_change'] >= 0 else ''
+        return f'{internal_prefix}{row["internal_change"]} / {external_prefix}{row["external_change"]}'
+
+    compare_df['change'] = compare_df.apply(
+        create_change_column,
+        axis=1
+    )
+    clusters_df = pd.merge(
+        compare_df[['cluster_base', 'change']],
+        clusters_df,
+        on='cluster_base',
+    )
+
+    return clusters_df
+
+
 def create_final_report(
      clusters_df: pd.DataFrame,
+     old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
 ) -> None:
@@ -339,18 +389,26 @@ def create_final_report(
         .rename('internal_count')
     )
     clusters_df = clusters_df.merge(internal_counts, on='cluster')
+    clusters_df['external_count'] = clusters_df['total_count'] - clusters_df['internal_count']
+    clusters_df = compare_counts(clusters_df, old_clusters_df)
     keep_cols = [
         'cluster',
-        'internal_count',
-        'total_count',
         'species',
-        'earliest_added',
+        'internal_count',
+        'external_count',
+        'change',
         'latest_added',
+        'earliest_added',
         'earliest_year_collected',
         'latest_year_collected',
         'tree_url',
     ]
     clusters_df = clusters_df[keep_cols]
+    bq_clusters_csv = os.path.join(
+        os.environ['NCT_OUT_DIR'],
+        f'bq_clusters_{os.environ["NCT_NOW"]}.csv'
+    )
+    clusters_df.to_csv(bq_clusters_csv, index=False)
 
     isolates_table = ar.DataTable(
         metadata[metadata['source'] == 'internal']
@@ -384,7 +442,10 @@ def create_final_report(
 
     ar.save_report(
         report,
-        path=os.path.join(os.environ['NCT_OUT_DIR'], 'clusters.html'),
+        path=os.path.join(
+            os.environ['NCT_OUT_DIR'],
+            f'clusters_{os.environ['NCT_NOW']}.html'
+        ),
         standalone=True,
     )
 
