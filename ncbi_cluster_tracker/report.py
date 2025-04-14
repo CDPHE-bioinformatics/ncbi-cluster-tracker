@@ -239,7 +239,7 @@ class ClusterReport:
             self.clusters_df['cluster'] == self.cluster.name
         ]['taxgroup_name'].item()
 
-        title = ar.HTML(f'<h2><i>{taxgroup_name}</i> Cluster {self.cluster.name}</h2>')
+        title = ar.HTML(f'<h2><i>{taxgroup_name}</i> cluster {self.cluster.name}</h2>')
         count_blocks = self._create_isolate_counts()
         tree_header = ar.HTML('<h3>NCBI Pathogen Detection</h3>')
         tree_url = self.clusters_df[
@@ -265,7 +265,7 @@ class ClusterReport:
             self.snp_matrix,
             count_graph_header,
             count_graph,
-            label=self.cluster.name
+            label=f'{self.cluster.name} - {taxgroup_name}'
         )
         return report
 
