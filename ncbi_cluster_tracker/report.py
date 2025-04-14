@@ -398,6 +398,49 @@ def compare_counts(
     )
     return clusters_df
 
+def create_clusters_timeline_plot(metadata: pd.DataFrame) -> ar.Plot:
+    """
+    Create plot showing when each isolate was added to each cluster.
+    """
+    MAX_DISPLAY = 15
+
+    # px.strip() wasn't jittering points with datetime, so manually jittering
+    metadata_jittered = metadata.copy()
+    metadata_jittered = metadata_jittered[metadata_jittered['cluster'].notna()]
+    metadata_jittered = metadata_jittered.sort_values(by='creation_date', ascending=False)
+    metadata_jittered['cluster_ticktext'] = (
+        metadata_jittered['cluster'].str.cat(metadata_jittered['taxgroup_name'], sep='<br>')
+    )
+    message = None
+    if metadata_jittered['cluster'].nunique() > MAX_DISPLAY:
+        top_clusters = metadata_jittered['cluster'].unique()[:MAX_DISPLAY]
+        metadata_jittered = metadata_jittered[metadata_jittered['cluster'].isin(top_clusters)]
+        message = f'Top {MAX_DISPLAY} most recently updated clusters displayed'
+    metadata_jittered['cluster_jittered'] = (
+        pd.Categorical(metadata_jittered['cluster'], categories=metadata_jittered['cluster'].unique(), ordered=True).codes
+        + np.random.uniform(-0.10, 0.10, size=len(metadata_jittered))
+    )
+    plot = ar.Plot(
+        px.scatter(
+            metadata_jittered,
+            x='creation_date',
+            y='cluster_jittered',
+            color='source',
+            height=90 * len(metadata_jittered['cluster'].unique()),
+            hover_data=['cluster', 'isolate_id'],
+        ).update_yaxes(
+            tickmode='array',
+            tickvals=list(range(len(metadata_jittered['cluster'].unique()))),
+            ticktext=metadata_jittered['cluster_ticktext'].unique(),
+            autorange='reversed',
+        ).update_traces(
+            hovertemplate='<b>Isolate ID:</b> %{customdata[1]}<br><b>Date:</b> %{x}'
+        ).update_layout(
+            yaxis_title='cluster',
+            xaxis={'side': 'top'},
+        )
+    )
+    return plot, message
 
 
 def write_final_report(
@@ -431,31 +474,37 @@ def write_final_report(
     ]
     clusters_df = clusters_df[keep_cols]
     bq_clusters_csv = os.path.join(
-        os.environ['NCT_OUT_DIR'],
+        os.environ['NCT_OUT_SUBDIR'],
         f'bq_clusters_{os.environ["NCT_NOW"]}.csv'
     )
     clusters_df.to_csv(bq_clusters_csv, index=False)
 
     isolates_table = ar.DataTable(
-        metadata[metadata['source'] == 'internal']
+        metadata
+        .sort_values(by=['source', 'creation_date'], ascending=[False, False])
         .reset_index()
         .drop(columns='index')
     )
 
-    clusters_table = ar.DataTable(clusters_df)
-    clusters_gantt = ar.Plot(
-        px.timeline(
-            clusters_df.sort_values('latest_added', ascending=True),
-            x_start='earliest_added',
-            x_end='latest_added',
-            y='cluster'
-        )
+    clusters_table = ar.DataTable(
+        clusters_df.sort_values('latest_added', ascending=False).reset_index().drop(columns='index')
     )
 
+    clusters_timeline_plot, clusters_timeline_message = create_clusters_timeline_plot(metadata)
     cluster_report_blocks = [r.report for r in cluster_reports]
+    cluster_page_blocks = [
+        clusters_table,
+        ar.HTML('<h3>Cluster timelines</h3>'),
+    ]
+    if clusters_timeline_message is not None: 
+        cluster_page_blocks.append(clusters_timeline_message)
+    cluster_page_blocks.append(clusters_timeline_plot)
 
     report = ar.Blocks(
-        ar.Page(clusters_table, clusters_gantt, title='Clusters'),
+        ar.Page(
+            blocks=cluster_page_blocks,
+            title='Clusters',
+        ),
         ar.Page(isolates_table, title='Isolates'),
         ar.Page(
             ar.Select(
