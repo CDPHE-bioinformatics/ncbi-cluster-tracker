@@ -55,7 +55,7 @@ gcloud auth login
 4. Run with test sample sheet
 
 ```
-python main.py tests/sample_sheet.csv
+python main.py tests/data/sample_sheet.csv
 ```
 
 ## Usage
