@@ -235,11 +235,11 @@ class ClusterReport:
         Combine tables and visualizations for the cluster into an Arawaka
         Group to be displayed together in the report.
         """
-        species = self.clusters_df[
+        taxgroup_name = self.clusters_df[
             self.clusters_df['cluster'] == self.cluster.name
-        ]['species'].item()
+        ]['taxgroup_name'].item()
 
-        title = ar.HTML(f'<h2><i>{species}</i> Cluster {self.cluster.name}</h2>')
+        title = ar.HTML(f'<h2><i>{taxgroup_name}</i> Cluster {self.cluster.name}</h2>')
         count_blocks = self._create_isolate_counts()
         tree_header = ar.HTML('<h3>NCBI Pathogen Detection</h3>')
         tree_url = self.clusters_df[
@@ -419,7 +419,7 @@ def write_final_report(
     clusters_df = compare_counts(clusters_df, old_clusters_df)
     keep_cols = [
         'cluster',
-        'species',
+        'taxgroup_name',
         'internal_count',
         'external_count',
         'change',
@@ -469,10 +469,9 @@ def write_final_report(
     ar.save_report(
         report,
         path=os.path.join(
-            os.environ['NCT_OUT_DIR'],
+            os.environ['NCT_OUT_SUBDIR'],
             f'clusters_{os.environ['NCT_NOW']}.html'
         ),
         standalone=True,
     )
-
 

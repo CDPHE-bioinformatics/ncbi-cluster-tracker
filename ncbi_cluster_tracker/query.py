@@ -61,7 +61,6 @@ def query_clusters(biosamples: list[str]) -> pd.DataFrame:
     SELECT DISTINCT
         cluster_isolates.erd_group AS cluster,
         cluster_size.num AS total_count,
-        scientific_name AS species,
         taxgroup_name,
         earliest_added,
         latest_added,
@@ -71,13 +70,11 @@ def query_clusters(biosamples: list[str]) -> pd.DataFrame:
     (
         SELECT
             erd_group,
-            scientific_name,
             taxgroup_name
         FROM `ncbi-pathogen-detect.pdbrowser.isolates`
         WHERE biosample_acc IN ({biosamples_str})
         GROUP BY
             erd_group,
-            scientific_name,
             taxgroup_name
     ) AS cluster_isolates
     LEFT JOIN
