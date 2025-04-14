@@ -27,7 +27,7 @@ class Cluster:
         """
         tree_file_glob = f'{self.cluster_id}*.newick_tree.newick'
         tree_path = glob.glob(
-            os.path.join(os.environ['NCT_OUT_DIR'], 'snps', tree_file_glob
+            os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps', tree_file_glob
         ))[0]
         tree = dendropy.Tree.get_from_path(tree_path, schema='newick')
 
@@ -91,6 +91,7 @@ class Cluster:
             taxa = [n.taxon for n in tree if n.taxon is not None]
             labels = [n.label for n in taxa]
             matrix_df = matrix_df.reindex(index=labels, columns=labels)
+
             return matrix_df
         return None
 

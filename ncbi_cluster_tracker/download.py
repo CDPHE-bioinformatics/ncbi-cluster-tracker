@@ -83,7 +83,7 @@ def build_tree_viewer_url(
 
 
 def download_snps(urls: list[str]) -> None:
-    out_subdir = os.path.join(os.environ['NCT_OUT_DIR'], 'snps')
+    out_subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps')
     os.makedirs(out_subdir, exist_ok=True)
     for url in urls:
         with requests.Session() as session:

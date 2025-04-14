@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import glob
 import logging
@@ -25,21 +26,10 @@ def main() -> None:
     )
     biosamples = sample_sheet_df.index.to_list()
 
-    compare_dir = args.compare_dir
-    if compare_dir is None:
-        try:
-            # select directory with most recent timestamp
-            dirs = glob.glob('outputs/*')
-            valid_dirs = [d for d in dirs if re.search(r'\d{8}_\d{6}', d)]
-            compare_dir = max(valid_dirs)
-            logger.info(f'Comparing to {compare_dir}')
-        except FileNotFoundError:
-            logger.info('No comparison directory found.')
-    else:
-        if not os.path.isdir(compare_dir):
-            raise ValueError(f'Directory "{compare_dir}" does not exist.')
+    out_dir = 'outputs' if args.out_dir is None else args.out_dir
+    compare_dir, latest_dir = find_existing_dirs(args, out_dir)
     
-    if compare_dir is None:
+    if compare_dir is None or args.no_compare:
         old_clusters_df = None
     else:
         old_clusters_glob = glob.glob(os.path.join(compare_dir, 'bq_clusters*.csv'))
@@ -49,16 +39,45 @@ def main() -> None:
             raise ValueError(f'Multiple bq_clusters files found in {compare_dir}')
         old_clusters_df = pd.read_csv(old_clusters_glob[0])
 
-    # TODO: make CLI argument
-    os.environ['NCT_NOW'] = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    os.environ['NCT_OUT_DIR'] = os.path.join('outputs', os.environ['NCT_NOW'])
-    os.makedirs(os.environ['NCT_OUT_DIR'], exist_ok=True)
+    if not args.retry:
+        os.environ['NCT_NOW'] = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        os.environ['NCT_OUT_SUBDIR'] = os.path.join(out_dir, os.environ['NCT_NOW'])
+        os.makedirs(os.environ['NCT_OUT_SUBDIR'], exist_ok=True)
+        isolates_df, clusters_df = get_clusters(biosamples, False)
+        download.download_cluster_files(clusters_df)
+    else:
+        os.environ['NCT_OUT_SUBDIR'] = latest_dir
+        os.environ['NCT_NOW'] = os.path.basename(os.environ['NCT_OUT_SUBDIR'])
+        logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
+        isolates_df, clusters_df = get_clusters(biosamples, True)
 
-    isolates_df, clusters_df = get_clusters(biosamples, args.use_local)
-    download.download_cluster_files(clusters_df)
     clusters = cluster.create_clusters(sample_sheet_df, isolates_df, clusters_df)
     metadata = report.combine_metadata(sample_sheet_df, isolates_df)
-    report.create_final_report(clusters_df, old_clusters_df, clusters, metadata)
+    report.write_final_report(clusters_df, old_clusters_df, clusters, metadata)
+
+def find_existing_dirs(args: argparse.Namespace, out_dir: str) -> tuple[str, list[str]]:
+    """
+    Return sub-directory `compare_dir` to compare results (if any) and the 
+    directory with most recent timestamp inside `out_dir`.
+    """
+    dirs = glob.glob(os.path.join(out_dir, '*'))
+    valid_dirs = [d for d in dirs if re.search(r'\d{8}_\d{6}', d)]
+
+    compare_dir = args.compare_dir
+    if compare_dir is None and not args.no_compare:
+        try:
+            latest_dirs = sorted(valid_dirs)
+            if args.retry:
+                compare_dir = latest_dirs[-2]
+            else:
+                compare_dir = latest_dirs[-1]
+            logger.info(f'Comparing to {compare_dir}')
+        except (IndexError, ValueError):
+            logger.info('No comparison directory found.')
+            compare_dir = None
+    elif compare_dir is not None and not os.path.isdir(compare_dir):
+        raise ValueError(f'Directory "{compare_dir}" does not exist.')
+    return compare_dir, max(valid_dirs)
 
 
 def get_clusters(
@@ -74,11 +93,11 @@ def get_clusters(
     DataFrames' data is written to a CSV in the output directory.
     """
     bq_isolates_csv = os.path.join(
-        os.environ['NCT_OUT_DIR'],
+        os.environ['NCT_OUT_SUBDIR'],
         f'bq_isolates_{os.environ["NCT_NOW"]}.csv'
     )
     bq_clusters_csv = os.path.join(
-        os.environ['NCT_OUT_DIR'],
+        os.environ['NCT_OUT_SUBDIR'],
         f'bq_clusters_{os.environ["NCT_NOW"]}.csv'
     )
 

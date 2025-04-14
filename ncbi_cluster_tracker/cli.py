@@ -5,19 +5,29 @@ def parse_args() -> argparse.Namespace:
     """
     Parse command-line arguments from the user.
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         'sample_sheet',
-        help='CSV sample sheet with required "biosample" column and any additional metadata columns. Use "id" column for alternate isolate IDs',
+        help='Path to sample sheet CSV with required "biosample" column and any additional metadata columns. Use "id" column for alternate isolate IDs.',
     )
     parser.add_argument(
-        '--compare-dir', '-c',
-        help='Path to report directory to compare isolate counts, defaults to _current symlink'
+        '--out-dir', '-o',
+        help='Path to directory to store outputs. Defaults to "./outputs/" if not specified.'
     )
     parser.add_argument(
-        '--use-local',
-        help='Do not query BigQuery or NCBI, assumes data has already been downloaded',
+        '--retry',
+        help='Do not query BigQuery or NCBI, assumes data has already been downloaded to directory with most recent timestamp.',
         action=argparse.BooleanOptionalAction,
+    )
+    mutex_group = parser.add_mutually_exclusive_group()
+    mutex_group.add_argument(
+        '--compare-dir',
+        help='Path to previous output directory to detect and report new isolates. Defaults to directory inside --out-dir with most recent timestamp if not specified.',
+    )
+    mutex_group.add_argument(
+        '--no-compare',
+        help='Do not compare to most recent output directory, all clusters and isolates will be considered "new".',
+        action='store_true',
     )
     args = parser.parse_args()
     return args

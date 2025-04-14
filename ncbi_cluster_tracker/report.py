@@ -43,6 +43,10 @@ class ClusterReport:
 
         matrix = self._add_metadata_to_matrix(self.cluster.filtered_matrix)
         matrix = self._rename_matrix_ids(matrix)
+            # Some isolates may be duplicated due to multiple assemblies, keep first
+        matrix = matrix[~matrix.index.duplicated(keep='first')]
+        matrix = matrix.loc[:, ~matrix.columns.duplicated(keep='first')]
+
         style = (matrix
             .style
             .background_gradient()
@@ -219,7 +223,7 @@ class ClusterReport:
                 value_vars=list(star_cols.values()),
             )
         )
-        subdir = os.path.join(os.environ['NCT_OUT_DIR'], 'labels')
+        subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'labels')
         os.makedirs(subdir, exist_ok=True)
         path = os.path.join(subdir, f'{self.cluster.name}_labels.txt')
         custom_labels.to_csv(path, sep='\t', index=False, header=False) 
@@ -322,6 +326,29 @@ def create_cluster_reports(
     return cluster_reports
 
 
+def add_counts(clusters_df: pd.DataFrame, metadata: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add external and total isolate counts to `clusters_df` DataFrame.
+    """
+    if 'total_count' not in clusters_df.columns:
+        clusters_df['total_count'] = (
+            clusters_df['internal_count'] + clusters_df['external_count']
+        )
+    else:
+        internal_counts = (metadata
+            .query('source == "internal"')
+            .loc[:, 'cluster']
+            .value_counts()
+            .rename('internal_count')
+        )
+        clusters_df = clusters_df.merge(internal_counts, on='cluster')
+        clusters_df['external_count'] =  (
+            clusters_df['total_count'] - clusters_df['internal_count']
+        )
+        
+    return clusters_df
+
+
 def compare_counts(
     clusters_df: pd.DataFrame,
     old_clusters_df: pd.DataFrame | None,
@@ -361,35 +388,34 @@ def compare_counts(
         create_change_column,
         axis=1
     )
+    if 'change' in clusters_df.columns:
+        clusters_df = clusters_df.drop(columns='change')
     clusters_df = pd.merge(
         compare_df[['cluster_base', 'change']],
         clusters_df,
+        how='right',
         on='cluster_base',
     )
-
     return clusters_df
 
 
-def create_final_report(
+
+def write_final_report(
      clusters_df: pd.DataFrame,
      old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
 ) -> None:
+    """
+    Output final, standalone HTML report with all tables and plots. This
+    function also outputs the clusters CSV.
+    """
     cluster_reports = create_cluster_reports(
         clusters,
         clusters_df,
         metadata
     )
-
-    internal_counts = (metadata
-        .query('source == "internal"')
-        .loc[:, 'cluster']
-        .value_counts()
-        .rename('internal_count')
-    )
-    clusters_df = clusters_df.merge(internal_counts, on='cluster')
-    clusters_df['external_count'] = clusters_df['total_count'] - clusters_df['internal_count']
+    clusters_df = add_counts(clusters_df, metadata)
     clusters_df = compare_counts(clusters_df, old_clusters_df)
     keep_cols = [
         'cluster',
