@@ -1,0 +1,156 @@
+PDT001375255.1	*id	
+PDT001833725.1	*id	
+PDT001833762.1	*id	
+PDT001833977.1	*id	
+PDT000675148.1	*id	
+PDT000675641.1	*id	
+PDT001683410.1	*id	
+PDT000833647.1	*id	
+PDT000833637.1	*id	
+PDT002151852.1	*id	
+PDT001089221.1	*id	
+PDT001089059.1	*id	
+PDT001216588.3	*id	
+PDT001249333.3	*id	
+PDT001306054.3	*id	
+PDT001306069.3	*id	
+PDT001671667.1	*id	
+PDT001386154.1	*id	
+PDT001352816.3	*id	
+PDT001502760.1	*id	
+PDT002075014.1	*id	
+PDT001940651.1	*id	
+PDT001594959.3	*id	
+PDT001665333.3	*id	
+PDT001810381.1	*id	lab_id_23
+PDT002046035.1	*id	
+PDT002554881.1	*id	
+PDT002554817.1	*id	
+PDT002554810.1	*id	
+PDT002554806.1	*id	
+PDT002554854.1	*id	
+PDT002088592.1	*id	
+PDT002110992.1	*id	
+PDT002538840.1	*id	
+PDT002539035.1	*id	
+PDT002539017.1	*id	
+PDT002538747.1	*id	
+PDT002238872.1	*id	lab_id_24
+PDT002341805.1	*id	lab_id_25
+PDT001375255.1	*isolate_id	98Q0F7
+PDT001833725.1	*isolate_id	BN_WGS_EcdcId_DD3B27E6-1614-5FFA-93F1-A8DBF020C38F
+PDT001833762.1	*isolate_id	BN_WGS_EcdcId_BB30CC5E-6FC6-59D9-A9BF-18162A1044AA
+PDT001833977.1	*isolate_id	BN_WGS_EcdcId_1B70D013-1CBB-5F9F-98A2-8A27E79893A5
+PDT000675148.1	*isolate_id	ERS4134431
+PDT000675641.1	*isolate_id	ERS4134924
+PDT001683410.1	*isolate_id	3c99cd68-8748-11eb-a050-fa163eea3084
+PDT000833647.1	*isolate_id	BA33222
+PDT000833637.1	*isolate_id	BA8153
+PDT002151852.1	*isolate_id	rs104
+PDT001089221.1	*isolate_id	AUSMDU00029684
+PDT001089059.1	*isolate_id	AUSMDU00044395
+PDT001216588.3	*isolate_id	2021EP-00112
+PDT001249333.3	*isolate_id	2022EP-00007
+PDT001306054.3	*isolate_id	2022HL-01259
+PDT001306069.3	*isolate_id	2022HL-01261
+PDT001671667.1	*isolate_id	NRZ-47672
+PDT001386154.1	*isolate_id	21D20CPO003B
+PDT001352816.3	*isolate_id	2022HL-01347
+PDT001502760.1	*isolate_id	ID1000116
+PDT002075014.1	*isolate_id	20200317_MGL-35_B2
+PDT001940651.1	*isolate_id	20200317_MGL_35
+PDT001594959.3	*isolate_id	2023GO-0002
+PDT001665333.3	*isolate_id	2023BB-00008
+PDT001810381.1	*isolate_id	2023CJ-00175
+PDT002046035.1	*isolate_id	2023JQ-00623
+PDT002554881.1	*isolate_id	EC33821
+PDT002554817.1	*isolate_id	EC23022
+PDT002554810.1	*isolate_id	EC27622
+PDT002554806.1	*isolate_id	EC29922
+PDT002554854.1	*isolate_id	EC45622
+PDT002088592.1	*isolate_id	2024DK-00055
+PDT002110992.1	*isolate_id	2024HL-00265
+PDT002538840.1	*isolate_id	148450
+PDT002539035.1	*isolate_id	19AR0675
+PDT002539017.1	*isolate_id	19AR0778
+PDT002538747.1	*isolate_id	19AR1474
+PDT002238872.1	*isolate_id	2024CJ-00073
+PDT002341805.1	*isolate_id	2024CJ-00089
+PDT001375255.1	*collection_date	2020
+PDT001833725.1	*collection_date	2019-09
+PDT001833762.1	*collection_date	2018-07
+PDT001833977.1	*collection_date	2022-03
+PDT000675148.1	*collection_date	
+PDT000675641.1	*collection_date	
+PDT001683410.1	*collection_date	
+PDT000833647.1	*collection_date	2018
+PDT000833637.1	*collection_date	2019
+PDT002151852.1	*collection_date	2018-05-16
+PDT001089221.1	*collection_date	2019
+PDT001089059.1	*collection_date	2020
+PDT001216588.3	*collection_date	2021
+PDT001249333.3	*collection_date	2022
+PDT001306054.3	*collection_date	2022
+PDT001306069.3	*collection_date	2022
+PDT001671667.1	*collection_date	2018
+PDT001386154.1	*collection_date	2020
+PDT001352816.3	*collection_date	2022
+PDT001502760.1	*collection_date	2017-01/2019-12
+PDT002075014.1	*collection_date	2020-02-17
+PDT001940651.1	*collection_date	2020-02-17
+PDT001594959.3	*collection_date	2022
+PDT001665333.3	*collection_date	2022
+PDT001810381.1	*collection_date	2023-07-07
+PDT002046035.1	*collection_date	2023
+PDT002554881.1	*collection_date	2021-12-16
+PDT002554817.1	*collection_date	2022-07-12
+PDT002554810.1	*collection_date	2022-08-03
+PDT002554806.1	*collection_date	2022-08-18
+PDT002554854.1	*collection_date	2022-11-23
+PDT002088592.1	*collection_date	2024
+PDT002110992.1	*collection_date	2024
+PDT002538840.1	*collection_date	2019
+PDT002539035.1	*collection_date	2019
+PDT002539017.1	*collection_date	2019
+PDT002538747.1	*collection_date	2019
+PDT002238872.1	*collection_date	2024-07-03
+PDT002341805.1	*collection_date	2024-08-27
+PDT001375255.1	*geo_loc_name	Viet Nam
+PDT001833725.1	*geo_loc_name	Denmark
+PDT001833762.1	*geo_loc_name	Denmark
+PDT001833977.1	*geo_loc_name	France
+PDT000675148.1	*geo_loc_name	Netherlands
+PDT000675641.1	*geo_loc_name	
+PDT001683410.1	*geo_loc_name	
+PDT000833647.1	*geo_loc_name	India: Vellore
+PDT000833637.1	*geo_loc_name	India: Vellore
+PDT002151852.1	*geo_loc_name	Bangladesh: Dhaka
+PDT001089221.1	*geo_loc_name	Australia
+PDT001089059.1	*geo_loc_name	Australia
+PDT001216588.3	*geo_loc_name	USA
+PDT001249333.3	*geo_loc_name	USA
+PDT001306054.3	*geo_loc_name	USA
+PDT001306069.3	*geo_loc_name	USA
+PDT001671667.1	*geo_loc_name	Germany
+PDT001386154.1	*geo_loc_name	Canada
+PDT001352816.3	*geo_loc_name	USA
+PDT001502760.1	*geo_loc_name	USA: California, Alameda County
+PDT002075014.1	*geo_loc_name	India: Chattisgarh, Jan Swasthya Sahyog
+PDT001940651.1	*geo_loc_name	India: Chattisgarh, Jan Swasthya Sahyog
+PDT001594959.3	*geo_loc_name	USA
+PDT001665333.3	*geo_loc_name	USA
+PDT001810381.1	*geo_loc_name	USA
+PDT002046035.1	*geo_loc_name	USA
+PDT002554881.1	*geo_loc_name	Sweden: Stockholm
+PDT002554817.1	*geo_loc_name	Sweden: Stockholm
+PDT002554810.1	*geo_loc_name	Sweden: Stockholm
+PDT002554806.1	*geo_loc_name	Sweden: Stockholm
+PDT002554854.1	*geo_loc_name	Sweden: Stockholm
+PDT002088592.1	*geo_loc_name	USA
+PDT002110992.1	*geo_loc_name	USA
+PDT002538840.1	*geo_loc_name	New Zealand
+PDT002539035.1	*geo_loc_name	New Zealand
+PDT002539017.1	*geo_loc_name	New Zealand
+PDT002538747.1	*geo_loc_name	New Zealand
+PDT002238872.1	*geo_loc_name	USA
+PDT002341805.1	*geo_loc_name	USA
