@@ -1,0 +1,4 @@
+,cluster,total_count,taxgroup_name,earliest_added,latest_added,earliest_year_collected,latest_year_collected,internal_count,external_count,cluster_base,internal_change,external_change,change
+0,PDS000056197.36,29,E.coli and Shigella,2020-02-02,2024-07-03,2017,2024,2,27,PDS000056197,0,0,new cluster
+1,PDS000173739.1,2,Serratia marcescens,2023-12-27,2024-02-13,2023,2024,2,0,PDS000173739,0,0,new cluster
+2,PDS000181150.1,2,Klebsiella oxytoca,2024-04-16,2024-04-23,2024,2024,1,1,PDS000181150,0,0,new cluster
