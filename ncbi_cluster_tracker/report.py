@@ -550,17 +550,25 @@ def compare_counts(
     )
     if 'change' in clusters_df.columns:
         clusters_df = clusters_df.drop(columns='change')
+
     clusters_df = pd.merge(
-        compare_df[['cluster_base', 'change']],
+        compare_df[['cluster_base', 'change', 'internal_change', 'external_change']],
         clusters_df,
         how='right',
         on='cluster_base',
     )
+    clusters_df['internal_change'] = clusters_df['internal_change'].fillna(0)
+    clusters_df['external_change'] = clusters_df['external_change'].fillna(0)
     return clusters_df
 
-def create_clusters_timeline_plot(metadata: pd.DataFrame) -> ar.Plot:
+def create_clusters_timeline_plot(
+    metadata: pd.DataFrame,
+    previous_max_date: datetime.date | None
+) -> ar.Plot:
     """
-    Create plot showing when each isolate was added to each cluster.
+    Create plot showing when each isolate was added to each cluster. Add
+    vertical red line to plot showing when the previous report's last
+    isolate was
     """
     MAX_DISPLAY = 15
 
@@ -580,26 +588,32 @@ def create_clusters_timeline_plot(metadata: pd.DataFrame) -> ar.Plot:
         pd.Categorical(metadata_jittered['cluster'], categories=metadata_jittered['cluster'].unique(), ordered=True).codes
         + np.random.uniform(-0.10, 0.10, size=len(metadata_jittered))
     )
-    plot = ar.Plot(
-        px.scatter(
-            metadata_jittered,
-            x='creation_date',
-            y='cluster_jittered',
-            color='source',
-            height=90 * len(metadata_jittered['cluster'].unique()),
-            hover_data=['cluster', 'isolate_id'],
-        ).update_yaxes(
-            tickmode='array',
-            tickvals=list(range(len(metadata_jittered['cluster'].unique()))),
-            ticktext=metadata_jittered['cluster_ticktext'].unique(),
-            autorange='reversed',
-        ).update_traces(
-            hovertemplate='<b>Isolate ID:</b> %{customdata[1]}<br><b>Date:</b> %{x}'
-        ).update_layout(
-            yaxis_title='cluster',
-            xaxis={'side': 'top'},
-        )
+    fig = px.scatter(
+        metadata_jittered,
+        x='creation_date',
+        y='cluster_jittered',
+        color='source',
+        height=90 * len(metadata_jittered['cluster'].unique()),
+        hover_data=['cluster', 'isolate_id'],
+    ).update_yaxes(
+        tickmode='array',
+        tickvals=list(range(len(metadata_jittered['cluster'].unique()))),
+        ticktext=metadata_jittered['cluster_ticktext'].unique(),
+        autorange='reversed',
+    ).update_traces(
+        hovertemplate='<b>Isolate ID:</b> %{customdata[1]}<br><b>Date:</b> %{x}'
+    ).update_layout(
+        yaxis_title='cluster',
+        xaxis={'side': 'top'},
     )
+    if previous_max_date is not None:
+        fig.add_vline(
+            x=previous_max_date.timestamp() * 1000,  # https://github.com/plotly/plotly.py/issues/3065
+            line_dash='dash',
+            line_color='indianred',
+            annotation_text='previous report'
+        )
+    plot = ar.Plot(fig)
     return plot, message
 
 
