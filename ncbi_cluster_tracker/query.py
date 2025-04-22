@@ -105,3 +105,95 @@ def execute_query(query: str) -> pd.DataFrame:
     client = bigquery.Client()
     df = client.query_and_wait(query).to_dataframe()
     return df
+
+def isolates_df_from_browser_df(
+    browser_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Parse DataFrame from --browser-tsv into `isolates_df` DataFrame format.
+    The output format should match that from query_isolates().
+    """
+    browser_df['isolate_id'] = browser_df['Isolate identifiers'].str.split(',').str[0]
+    rename_cols = {
+        'isolate_id': 'isolate_id',
+        'BioSample': 'biosample',
+        'Isolate': 'target_acc',
+        'SNP cluster': 'cluster',
+        'Run': 'sra_id',
+        'Isolation source': 'isolation_source',
+        'Location': 'geo_loc_name',
+        'Collection date': 'collection_date',
+        'Create date': 'creation_date',
+        '#Organism group': 'taxgroup_name',
+        'Scientific name': 'scientific_name',
+        'BioProject': 'bioproject_acc'
+    }
+    df = browser_df[rename_cols.keys()].rename(columns=rename_cols)
+    df['collection_date'] = df['collection_date'].astype('string')
+    df.to_csv('test_out.csv', index=False)
+    return df 
+
+def cluster_df_from_isolates_df(
+    isolates_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Return DataFrame with counts and date ranges for each cluster in
+    `isolates_df`.
+    """
+    isolates_df = isolates_df.copy()
+    cluster_isolates = (
+        isolates_df
+        .groupby(['cluster', 'taxgroup_name'], as_index=False)
+        .first()
+    )
+    isolates_df['creation_date'] = pd.to_datetime(
+        isolates_df['creation_date'], errors='coerce'
+    )
+    isolates_df['collection_date'] = isolates_df['collection_date'].astype('string')
+    isolates_df['collection_year'] = isolates_df['collection_date'].str[:4]
+    cluster_size = (
+        isolates_df
+        .groupby('cluster')
+        .agg(
+            total_count=('cluster', 'count'),
+            earliest_added=(
+                'creation_date',
+                lambda x: x.dropna().min().strftime('%Y-%m-%d'),
+            ),
+            latest_added=(
+                'creation_date',
+                lambda x: x.dropna().max().strftime('%Y-%m-%d'),
+            ),
+            earliest_year_collected=(
+                'collection_year',
+                lambda x: x.dropna().min(),
+            ),
+            latest_year_collected=(
+                'collection_year',
+                lambda x: x.dropna().max(),
+            )
+        )
+        .reset_index()
+    )
+
+    df = (
+        cluster_isolates
+        .merge(cluster_size, on='cluster', how='left')
+        .dropna(subset=['total_count'])
+        .sort_values(by='total_count', ascending=False)
+    )
+    keep_cols = [
+        'cluster',
+        'total_count',
+        'taxgroup_name',
+        'earliest_added',
+        'latest_added',
+        'earliest_year_collected',
+        'latest_year_collected'
+    ]
+    df = df[keep_cols] 
+    df = df.astype({
+            'earliest_year_collected': 'string',
+            'latest_year_collected': 'string',
+        })
+    return df

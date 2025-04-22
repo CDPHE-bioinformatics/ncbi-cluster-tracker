@@ -16,15 +16,20 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         '--retry',
-        help='Do not query BigQuery or NCBI, assumes data has already been downloaded to directory with most recent timestamp.',
+        help='Do not query BigQuery or NCBI, assumes data has already been downloaded to --out-dir or directory with most recent timestamp.',
         action=argparse.BooleanOptionalAction,
     )
-    mutex_group = parser.add_mutually_exclusive_group()
-    mutex_group.add_argument(
+    parser.add_argument(
+        '--browser-file',
+        # TODO link to instructions
+        help='Path to isolates TSV or CSV downloaded from the Pathogen Detection Isolates Browser with information for all internal and external isolates. When specified, data in file will be used instead of querying the BigQuery dataset.'
+    )
+    mutex_group_compare = parser.add_mutually_exclusive_group()
+    mutex_group_compare.add_argument(
         '--compare-dir',
         help='Path to previous output directory to detect and report new isolates. Defaults to directory inside --out-dir with most recent timestamp if not specified.',
     )
-    mutex_group.add_argument(
+    mutex_group_compare.add_argument(
         '--no-compare',
         help='Do not compare to most recent output directory, all clusters and isolates will be considered "new".',
         action='store_true',
