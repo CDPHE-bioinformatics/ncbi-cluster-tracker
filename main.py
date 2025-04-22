@@ -1,9 +1,10 @@
+
 import argparse
 import datetime
 import glob
-import logging
 import os
 import re
+import sys
 
 import arakawa as ar # type: ignore
 import pandas as pd
@@ -18,10 +19,10 @@ from ncbi_cluster_tracker import report
 from ncbi_cluster_tracker.logger import logger
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    command = f'{os.path.basename(sys.argv[0])} {" ".join(sys.argv[1:])}'
     args = cli.parse_args()
     sample_sheet_df = (pd
-        .read_csv(args.sample_sheet)
+        .read_csv(args.sample_sheet, dtype={'id': 'string'})
         .set_index('biosample', verify_integrity=True)
     )
     biosamples = sample_sheet_df.index.to_list()

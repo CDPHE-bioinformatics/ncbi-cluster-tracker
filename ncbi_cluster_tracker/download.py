@@ -4,6 +4,9 @@ import requests
 import shutil
 
 import pandas as pd
+import tqdm
+
+from ncbi_cluster_tracker.logger import logger
 
 # Can't auto-translate these to folders on NCBI FTP
 TAXGROUP_TO_ORGANISM = {
@@ -23,7 +26,6 @@ TAXGROUP_TO_ORGANISM = {
 
 def download_cluster_files(clusters_df: pd.DataFrame):
     clusters_df['snp_url'] = clusters_df.apply(build_snp_url, axis=1)
-    clusters_df['tree_url'] = clusters_df.apply(build_tree_viewer_url, axis=1)
     urls = clusters_df['snp_url'].to_list()
     download_snps(urls)
 
@@ -84,14 +86,15 @@ def build_tree_viewer_url(
 
 def download_snps(urls: list[str]) -> None:
     out_subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps')
+    logger.info(f'Downloading SNP cluster data to {out_subdir}...')
     os.makedirs(out_subdir, exist_ok=True)
-    for url in urls:
+    for url in tqdm.tqdm(urls):
         with requests.Session() as session:
             for _ in range(3):
                 response = session.get(url)
                 if response.ok:
                     break
-                # try incrementing PDS version
+                # try incrementing cluster version
                 regex = r'(?<=\.)(\d+)(?=\.tar\.gz)'
                 url = re.sub(regex, lambda x: str(int(x.group())+1), url)
             else:

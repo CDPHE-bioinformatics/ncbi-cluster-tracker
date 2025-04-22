@@ -3,8 +3,11 @@ import os
 
 import dendropy # type: ignore
 import pandas as pd
+import tqdm
 
 import ncbi_cluster_tracker.cluster as cluster
+
+from ncbi_cluster_tracker.logger import logger
 
 class Cluster:
     """
@@ -105,7 +108,8 @@ def create_clusters(
     Create list of all of the Clusters and their associated isolates.
     """
     clusters: list[cluster.Cluster] = []
-    for cluster_name in clusters_df['cluster'].tolist():
+    logger.info('Creating clusters...')
+    for cluster_name in tqdm.tqdm(clusters_df['cluster'].tolist()):
         internal_isolates = isolates_df[
             (isolates_df['cluster'] == cluster_name)
             & (isolates_df['biosample'].isin(sample_sheet_df.index))

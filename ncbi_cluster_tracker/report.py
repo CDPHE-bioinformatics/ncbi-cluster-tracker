@@ -1,4 +1,4 @@
-import glob
+import datetime
 import os
 
 import arakawa as ar  # type: ignore
@@ -8,6 +8,7 @@ import plotly.express as px  # type: ignore
 
 import ncbi_cluster_tracker.cluster as cluster
 
+from ncbi_cluster_tracker.logger import logger
 
 class ClusterReport:
     """
@@ -43,7 +44,7 @@ class ClusterReport:
 
         matrix = self._add_metadata_to_matrix(self.cluster.filtered_matrix)
         matrix = self._rename_matrix_ids(matrix)
-            # Some isolates may be duplicated due to multiple assemblies, keep first
+        # Some isolates may be duplicated due to multiple assemblies, keep first
         matrix = matrix[~matrix.index.duplicated(keep='first')]
         matrix = matrix.loc[:, ~matrix.columns.duplicated(keep='first')]
 
@@ -345,7 +346,6 @@ def add_counts(clusters_df: pd.DataFrame, metadata: pd.DataFrame) -> pd.DataFram
         clusters_df['external_count'] =  (
             clusters_df['total_count'] - clusters_df['internal_count']
         )
-        
     return clusters_df
 
 
