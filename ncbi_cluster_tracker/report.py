@@ -30,7 +30,8 @@ class ClusterReport:
 
         self.cluster = cluster
         self.clusters_df = clusters_df
-        self.metadata = self._truncate_metadata(metadata.copy()).fillna('')
+        self.metadata = metadata
+        self.metadata_truncated = self._truncate_metadata(metadata.copy()).fillna('')
         self.snp_matrix = self._create_snp_matrix()
         self.custom_labels = self._create_custom_labels()
         self.report = self._create_report()
@@ -108,24 +109,36 @@ class ClusterReport:
         isolates and for internal isolates if 'id' column not provided.
         """
         self.metadata = self.metadata.set_index('target_acc')
+
         if 'id' in self.metadata.columns:
-            # indicate internal isolates with a star
-            internal_renamer = self.metadata.loc[
-                self.metadata['source'] == 'internal',
-                'id'
-            ] 
+            internal = self.metadata.query('source == "internal"').copy()
+            internal['label'] = internal['id']
         else:
-            internal_renamer = self.metadata.loc[
-                self.metadata['source'] == 'internal',
-                'biosample'
-            ]
-        external_renamer = self.metadata.loc[
-            self.metadata['source'] == 'external',
-            'biosample'
-        ]
-        internal_renamer = '⭐' + internal_renamer  
-        renamer = pd.concat([internal_renamer, external_renamer])
-        matrix = matrix.rename(columns=dict(renamer), index=dict(renamer))
+            internal = self.metadata.query('source == "internal"').copy()
+            internal['label'] = internal['biosample']
+
+        external = self.metadata.query('source == "external"').copy()
+        external['label'] = external['biosample']
+
+        def apply_prefix(row):
+            if row.get('is_new') == 'yes':
+                if row.get('source') == 'internal':
+                    return f'⭐🆕{row.label}'
+                return f'🆕{row.label}'
+            elif row.get('source') == 'internal':
+                return f'⭐{row.label}'
+            return row.label
+
+        combined = pd.concat([
+            internal,
+            external if not external.empty else None,
+        ])
+        combined['renamed'] = combined.apply(apply_prefix, axis=1)
+
+        renamer = combined['renamed']
+        renamer.index = combined.index  # ensure target_acc is the index
+        matrix = matrix.rename(columns=renamer.to_dict(), index=renamer.to_dict())
+
         self.metadata = self.metadata.reset_index()
         return matrix
     
@@ -133,7 +146,7 @@ class ClusterReport:
         """
         Add columns with basic metadata to the distance matrix.
         """
-        matrix = (self.metadata[['target_acc', *self.PRIMARY_METADATA_COLS]]
+        matrix = (self.metadata_truncated[['target_acc', *self.PRIMARY_METADATA_COLS]]
             .set_index('target_acc')
             .merge(
                 matrix,
@@ -160,30 +173,116 @@ class ClusterReport:
         )
         return metadata 
 
-    def _create_isolate_counts(self) -> ar.Group:
+    def _count_isolates(self) -> tuple[ar.Group, ar.Text | None]:
         """
         Summarize internal and external isolate counts.
         """
-        internal_count = len(self.cluster.internal_isolates)
-        if self.cluster.external_isolates is not None:
-            external_count = len(self.cluster.external_isolates)
-        else:
-            external_count = 0
+        internal_count = np.int64(self.clusters_df['internal_count'].iloc[0].item())
+        external_count = np.int64(self.clusters_df['external_count'].iloc[0].item())
         total_count = internal_count + external_count
+        internal_change = np.int64(self.clusters_df['internal_change'].iloc[0].item())
+        external_change = np.int64(self.clusters_df['external_change'].iloc[0].item())
+        total_change = internal_change + external_change
+
+        if internal_change > 0:
+            internal_upward = True
+        elif internal_change < 0:
+            internal_upward = False
+        else:
+            internal_change = None
+            internal_upward = None
+
+        if external_change > 0:
+            external_upward = True
+        elif external_change < 0:
+            external_upward = False
+        else:
+            external_change = None
+            external_upward = None
+
+        if total_change > 0:
+            total_upward = True
+        elif total_change < 0:
+            total_upward = False
+        else:
+            total_change = None
+            total_upward = None
+
+        # Isolate counts may differ between FTP and BigQuery datasets
+        # if the FTP site updated before BigQuery or the FTP downloaded data is
+        # outdated (second case less likely). In either case the user should be
+        # warned of the mismatch.
+        warning_message = []
+        if self.cluster.external_isolates is not None:
+            external_count_ftp = len(self.cluster.external_isolates)
+        else:
+            external_count_ftp = 0
+
+        if external_count != external_count_ftp:
+            warning_message = [ar.Text(
+                '⚠️ WARNING: A more up-to-date version of this cluster may be ' \
+                'available on the Pathogen Detection site with more ' \
+                'internal and/or external isolates (visit the backup link).' \
+            )]
+
+        # List specific new isolates
+        MAX_DISPLAY = 5
+        if internal_change is not None:
+            if 'id' in self.metadata.columns:
+                internal_new = self.metadata.query(
+                    'source == "internal" and is_new == "yes"'
+                )[['id', 'isolate_id']]
+            else:
+                internal_new = self.metadata.query(
+                    'source == "internal" and is_new == "yes"'
+                )[['biosample', 'isolate_id']]
+            internal_new = internal_new.iloc[:, 0].str.cat(internal_new.iloc[:, 1], sep=' / ').tolist()
+            internal_list = 'New internal isolates added:\n'
+            internal_list = f"{internal_list} - {'\n - '.join(internal_new[:MAX_DISPLAY])}"
+            if len(internal_new) > MAX_DISPLAY:
+                internal_list = f'{internal_list}\nand {internal_change - MAX_DISPLAY} mor.'
+        else:
+            internal_list = 'No change in internal isolate count.'
+
+        if external_change is not None:
+            external_new = self.metadata.query(
+                'source == "external" and is_new == "yes"'
+            )[['biosample', 'isolate_id']]
+            external_new = external_new.iloc[:, 0].str.cat(external_new.iloc[:, 1], sep=' / ').tolist()
+            external_list = 'New external isolates added:\n'
+            external_list = f"{external_list} - {'\n - '.join(external_new[:MAX_DISPLAY])}\n"
+            if len(external_new) > MAX_DISPLAY:
+                external_list = f'{external_list}- and {external_change - MAX_DISPLAY} more'
+        else:
+            external_list = 'No change in external isolate count.'
+
         count_blocks = ar.Group(
-            ar.BigNumber(
-                heading='Internal isolates',
-                value=internal_count
-            ),
-            ar.BigNumber(
-                heading='External isolates',
-                value=external_count
-            ),
-            ar.BigNumber(
-                heading='Total isolates',
-                value=total_count
-            ),
-            columns=3,
+            blocks=[
+                *warning_message,
+                ar.Group(
+                    ar.BigNumber(
+                        heading='Internal isolates',
+                        value=internal_count,
+                        change=internal_change,
+                        is_upward_change=internal_upward,
+                    ),
+                    ar.BigNumber(
+                        heading='External isolates',
+                        value=external_count,
+                        change=external_change,
+                        is_upward_change=external_upward,
+                    ),
+                    ar.BigNumber(
+                        heading='Total isolates',
+                        value=total_count,
+                        change=total_change,
+                        is_upward_change=total_upward,
+                    ),
+                    ar.Text(internal_list),
+                    ar.Text(external_list),
+                    columns=3,
+                ),
+            ]
         )
         return count_blocks
 
@@ -213,7 +312,7 @@ class ClusterReport:
         if 'id' in self.metadata.columns:
             cols.insert(0, 'id')
 
-        # prefix label with start to avoid collision with Pathogen Detection
+        # prefix label with star to avoid collision with Pathogen Detection
         star_cols = {k: f'*{k}' for k in cols}
 
         custom_labels = (
@@ -239,38 +338,76 @@ class ClusterReport:
         taxgroup_name = self.clusters_df[
             self.clusters_df['cluster'] == self.cluster.name
         ]['taxgroup_name'].item()
-
         title = ar.HTML(f'<h2><i>{taxgroup_name}</i> cluster {self.cluster.name}</h2>')
-        count_blocks = self._create_isolate_counts()
+        count_blocks = self._count_isolates()
         tree_header = ar.HTML('<h3>NCBI Pathogen Detection</h3>')
         tree_url = self.clusters_df[
             self.clusters_df['cluster'] == self.cluster.name
         ]['tree_url'].item()
 
         # Modify URL so that internal isolates are highlighted red
-        # FIXME: File server may update before web interface updates, leading
-        # to a blank page when visiting the link. Back up link?
-        tree_url_highlight = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
-        tree_link = ar.Text(f'[Link to tree]({tree_url_highlight})')
+        tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
+        tree_links = (
+            f'Links to tree:\n\n' \
+            f'- [Highlight all internal isolates]({tree_url_all_internal})\n'
+        )
+        new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
+        if new_internals:
+            tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}'
+            tree_links = f'{tree_links}- [Highlight new internal isolates]({tree_url_new_internal})\n'
+        new_all = self.metadata.query('is_new == "yes"')['target_acc'].tolist()
+        if new_all:
+            tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}'
+            tree_links = f'{tree_links}- [Highlight all new isolates]({tree_url_new_all})\n'
+        cluster_base = self.cluster.name.split('.')[0]
+        tree_links = f'{tree_links}- [Backup link](https://www.ncbi.nlm.nih.gov/pathogens/isolates/#{cluster_base})'
+        tree_links_block = ar.Text(tree_links)
 
         snp_header = ar.HTML('<h3>SNP distance matrix</h3>')
         count_graph_header = ar.HTML('<h3>Isolates by date added</h3>')
         count_graph = self._create_isolate_count_graph()
+        table_header = ar.HTML('<h3>Isolate table</h3>')
+        table = ar.DataTable(
+            self.metadata
+            .sort_values(by=['source', 'creation_date'], ascending=[False, False])
+            .reset_index()
+            .drop(columns='index')
+        )
+        new = '🆕' if self.clusters_df['change'].iloc[0] != '+0 / +0' else ''
         report = ar.Group(
-            title,
-            count_blocks,
-            tree_header,
-            tree_link,
-            self.custom_labels,
-            snp_header,
-            self.snp_matrix,
-            count_graph_header,
-            count_graph,
-            label=f'{self.cluster.name} - {taxgroup_name}'
+            blocks = [
+                title,
+                count_blocks,
+                tree_header,
+                tree_links_block,
+                self.custom_labels,
+                snp_header,
+                self.snp_matrix,
+                count_graph_header,
+                count_graph,
+                table_header,
+                table,
+            ],
+            label=f'{new} {self.cluster.name} - {taxgroup_name}'
         )
         return report
 
-
+def mark_new_isolates(
+    isolates_df: pd.DataFrame,
+    old_isolates_df: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """
+    Add "is_new" column to `isolates_df` to indicate any new isolates added
+    compared to `old_cluster_df`.
+    """
+    if old_isolates_df is None:
+        isolates_df['is_new'] = 'yes'
+        return isolates_df
+    old_biosamples = set(old_isolates_df['biosample'])
+    isolates_df['is_new'] = isolates_df['biosample'].apply(
+        lambda x: 'yes' if x not in old_biosamples else 'no'
+    )
+    return isolates_df
 
 def combine_metadata(
     sample_sheet_df: pd.DataFrame,
@@ -304,7 +441,28 @@ def combine_metadata(
         'right_only': 'external',
         'both': 'internal',
     })
-    
+    optional_id = ['id'] if 'id' in metadata.columns else []
+    column_order = [
+        'biosample',
+        *optional_id,
+        'isolate_id',
+        'cluster',
+        'source',
+        'is_new',
+        'scientific_name',
+        'collection_date',
+        'creation_date',
+        'geo_loc_name',
+        'isolation_source',
+        'taxgroup_name',
+        'bioproject_acc',
+        'target_acc',
+        'sra_id',
+    ]
+    extra_internal_cols = [c for c in metadata.columns if c not in column_order]
+    extra_internal_cols.sort()
+    column_order.extend(extra_internal_cols)
+    metadata = metadata[column_order]
     return metadata
 
 
@@ -319,10 +477,10 @@ def create_cluster_reports(
     cluster_reports: list[ClusterReport] = []
     for cluster in clusters:
         cluster_report = ClusterReport(
-        cluster,
-        metadata[metadata['cluster'] == cluster.name],
-        clusters_df,
-    )
+            cluster,
+            metadata[metadata['cluster'] == cluster.name],
+            clusters_df[clusters_df['cluster'] == cluster.name],
+        )
         cluster_reports.append(cluster_report)
     return cluster_reports
 
@@ -358,13 +516,15 @@ def compare_counts(
     differences to the `clusters_df` DataFrame.
     """
     clusters_df['cluster_base'] = clusters_df['cluster'].str.split('.').str[0]
+    clusters_df = clusters_df.astype({'internal_count': 'Int64', 'external_count': 'Int64'})
 
     if old_clusters_df is None:
+        clusters_df['internal_change'] = 0
+        clusters_df['external_change'] = 0
         clusters_df['change'] = 'new cluster'
         return clusters_df
 
     old_clusters_df['cluster_base'] = old_clusters_df['cluster'].str.split('.').str[0]
-    clusters_df = clusters_df.astype({'internal_count': 'Int64', 'external_count': 'Int64'})
     old_clusters_df = old_clusters_df.astype({'internal_count': 'Int64', 'external_count': 'Int64'})
 
     compare_df = pd.merge(
@@ -448,18 +608,22 @@ def write_final_report(
      old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
+     sample_sheet: str,
+     compare_dir: str | None,
+     command: str
 ) -> None:
     """
     Output final, standalone HTML report with all tables and plots. This
     function also outputs the clusters CSV.
     """
+    logger.info('Generating HTML report...')
+    clusters_df = add_counts(clusters_df, metadata)
+    clusters_df = compare_counts(clusters_df, old_clusters_df)
     cluster_reports = create_cluster_reports(
         clusters,
         clusters_df,
         metadata
     )
-    clusters_df = add_counts(clusters_df, metadata)
-    clusters_df = compare_counts(clusters_df, old_clusters_df)
     keep_cols = [
         'cluster',
         'taxgroup_name',
@@ -473,11 +637,39 @@ def write_final_report(
         'tree_url',
     ]
     clusters_df = clusters_df[keep_cols]
-    bq_clusters_csv = os.path.join(
+    clusters_csv = os.path.join(
         os.environ['NCT_OUT_SUBDIR'],
-        f'bq_clusters_{os.environ["NCT_NOW"]}.csv'
+        f'clusters_{os.environ["NCT_NOW"]}.csv'
     )
-    clusters_df.to_csv(bq_clusters_csv, index=False)
+    clusters_df.to_csv(clusters_csv, index=False)
+
+    cluster_page_blocks = [ar.HTML(f'<h2>Cluster report {os.environ["NCT_NOW"]}</h2>')]
+    command_header = ar.Text('Command: ')
+    command_block = ar.Code(code=command, language='javascript')
+    cluster_page_blocks.extend([command_header, command_block])
+    isolate_page_blocks = []
+    if compare_dir is not None:
+        header_2 = ar.Text(f'↔️ Comparing to {compare_dir}')
+        cluster_page_blocks.append(header_2)
+        isolate_page_blocks.append(header_2)
+
+    clusters_table = ar.DataTable(
+        clusters_df.sort_values('latest_added', ascending=False).reset_index().drop(columns='index')
+    )
+    previous_max_date = (
+        pd.to_datetime(old_clusters_df['latest_added'].max()) if old_clusters_df is not None else None
+    )
+    clusters_timeline_plot, clusters_timeline_message = create_clusters_timeline_plot(
+        metadata,
+        previous_max_date,
+    )
+    cluster_page_blocks.extend([
+        clusters_table,
+        ar.HTML('<h3>Cluster timelines</h3>'),
+    ])
+    if clusters_timeline_message is not None: 
+        cluster_page_blocks.append(clusters_timeline_message)
+    cluster_page_blocks.append(clusters_timeline_plot)
 
     isolates_table = ar.DataTable(
         metadata
@@ -485,33 +677,31 @@ def write_final_report(
         .reset_index()
         .drop(columns='index')
     )
+    isolate_page_blocks.append(isolates_table)
+    missing_isolates = metadata.query('source == "internal" and is_new.isna()')['biosample'].tolist()
+    missing_isolates.sort(reverse=True)
+    metadata['is_new'] = metadata['is_new'].fillna('(no data)')
+    # TODO: List specific reason for missing data, at least when possible
+    if missing_isolates:
+        missing_message = ar.Text(
+            f'⚠️ WARNING: No cluster data displayed for the internal '\
+            f'isolates listed below, either because they have not finished '\
+            f'processing, failed quality control, or are otherwise not '\
+            f'included in the system. More information about these isolates '\
+            f'may be available in the Isolates Browser search results '\
+            f'[here](https://www.ncbi.nlm.nih.gov/pathogens/isolates/#{"%20".join(missing_isolates)})'
+            f'\n\n{", ".join(missing_isolates)}'
+        )
+        isolate_page_blocks.append(missing_message)
 
-    clusters_table = ar.DataTable(
-        clusters_df.sort_values('latest_added', ascending=False).reset_index().drop(columns='index')
-    )
-
-    clusters_timeline_plot, clusters_timeline_message = create_clusters_timeline_plot(metadata)
     cluster_report_blocks = [r.report for r in cluster_reports]
-    cluster_page_blocks = [
-        clusters_table,
-        ar.HTML('<h3>Cluster timelines</h3>'),
-    ]
-    if clusters_timeline_message is not None: 
-        cluster_page_blocks.append(clusters_timeline_message)
-    cluster_page_blocks.append(clusters_timeline_plot)
-
+    cluster_report_blocks.sort(key=lambda r: r.label, reverse=True)
     report = ar.Blocks(
+        ar.Page(blocks=cluster_page_blocks, title='Clusters'),
+        ar.Page(blocks=isolate_page_blocks, title='Isolates'),
         ar.Page(
-            blocks=cluster_page_blocks,
-            title='Clusters',
-        ),
-        ar.Page(isolates_table, title='Isolates'),
-        ar.Page(
-            ar.Select(
-                blocks=cluster_report_blocks,
-                type=ar.SelectType.DROPDOWN,
-            ),
-            title='Cluster details'
+            ar.Select(blocks=cluster_report_blocks, type=ar.SelectType.DROPDOWN),
+            title='Cluster details',
         )
     )
 

@@ -30,10 +30,8 @@ def query_isolates(clusters: list[str], biosamples: list[str]) -> pd.DataFrame:
         creation_date,
         taxgroup_name,
         scientific_name,
-        bioproject_acc,
-        STRING_AGG(a.element, ",") AS beta_lactamase_genes
+        bioproject_acc
     FROM `ncbi-pathogen-detect.pdbrowser.isolates`
-    LEFT JOIN UNNEST(AMR_genotypes) AS a 
     WHERE erd_group IN ({clusters_str})
     OR biosample_acc IN ({biosamples_str}) 
     GROUP BY
@@ -52,6 +50,7 @@ def query_isolates(clusters: list[str], biosamples: list[str]) -> pd.DataFrame:
     ORDER BY isolate_id;
     '''
     df = execute_query(query)
+    df['collection_date'] = df['collection_date'].astype('string')
     return df
 
 
@@ -85,7 +84,7 @@ def query_clusters(biosamples: list[str]) -> pd.DataFrame:
             MIN(SUBSTRING(creation_date, 0, 10)) AS earliest_added,
             MAX(SUBSTRING(creation_date, 0, 10)) AS latest_added,
             MIN(SUBSTRING(collection_date, 0, 4)) AS earliest_year_collected,
-            max(substring(collection_date, 0, 4)) as latest_year_collected
+            MAX(SUBSTRING(collection_date, 0, 4)) as latest_year_collected
         FROM `ncbi-pathogen-detect.pdbrowser.isolates`
         GROUP BY erd_group
     ) AS cluster_size

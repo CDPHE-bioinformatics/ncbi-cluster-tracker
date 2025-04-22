@@ -32,29 +32,51 @@ def main() -> None:
     
     if compare_dir is None or args.no_compare:
         old_clusters_df = None
+        old_isolates_df = None
     else:
-        old_clusters_glob = glob.glob(os.path.join(compare_dir, 'bq_clusters*.csv'))
+        old_clusters_glob = glob.glob(os.path.join(compare_dir, '*clusters*.csv'))
+        old_isolates_glob = glob.glob(os.path.join(compare_dir, '*isolates*.csv'))
         if not old_clusters_glob:
-            raise ValueError(f'Could not find bq_clusters file in {compare_dir}')
+            raise FileNotFoundError(f'Could not find clusters CSV file in {compare_dir}')
         if len(old_clusters_glob) > 1:
-            raise ValueError(f'Multiple bq_clusters files found in {compare_dir}')
+            raise ValueError(f'Multiple clusters CSV files found in {compare_dir}')
+        if not old_isolates_glob:
+            raise FileNotFoundError(f'Could not find isolates CSV file in {compare_dir}')
+        if len(old_isolates_glob) > 1:
+            raise ValueError(f'Multiple isolates CSV files found in {compare_dir}')
         old_clusters_df = pd.read_csv(old_clusters_glob[0])
+        old_isolates_df = pd.read_csv(old_isolates_glob[0])
 
     if not args.retry:
         os.environ['NCT_NOW'] = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         os.environ['NCT_OUT_SUBDIR'] = os.path.join(out_dir, os.environ['NCT_NOW'])
         os.makedirs(os.environ['NCT_OUT_SUBDIR'], exist_ok=True)
-        isolates_df, clusters_df = get_clusters(biosamples, False)
+        if args.browser_file is not None:
+            isolates_df, clusters_df = get_clusters(biosamples, args.browser_file)
+        else:
+            isolates_df, clusters_df = get_clusters(biosamples, 'bigquery')
         download.download_cluster_files(clusters_df)
     else:
+        if latest_dir is None:
+            raise FileNotFoundError(f'Could not find existing data at output directory {out_dir} for --retry')
         os.environ['NCT_OUT_SUBDIR'] = latest_dir
         os.environ['NCT_NOW'] = os.path.basename(os.environ['NCT_OUT_SUBDIR'])
         logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
-        isolates_df, clusters_df = get_clusters(biosamples, True)
-
+        isolates_df, clusters_df = get_clusters(biosamples, 'local')
+    
+    clusters_df['tree_url'] = clusters_df.apply(download.build_tree_viewer_url, axis=1)
     clusters = cluster.create_clusters(sample_sheet_df, isolates_df, clusters_df)
+    isolates_df = report.mark_new_isolates(isolates_df, old_isolates_df)
     metadata = report.combine_metadata(sample_sheet_df, isolates_df)
-    report.write_final_report(clusters_df, old_clusters_df, clusters, metadata)
+    report.write_final_report(
+        clusters_df,
+        old_clusters_df,
+        clusters,
+        metadata,
+        args.sample_sheet,
+        compare_dir,
+        command,
+    )
 
 def find_existing_dirs(args: argparse.Namespace, out_dir: str) -> tuple[str, list[str]]:
     """
@@ -78,40 +100,49 @@ def find_existing_dirs(args: argparse.Namespace, out_dir: str) -> tuple[str, lis
             compare_dir = None
     elif compare_dir is not None and not os.path.isdir(compare_dir):
         raise ValueError(f'Directory "{compare_dir}" does not exist.')
+    if not valid_dirs:
+        return compare_dir, None
     return compare_dir, max(valid_dirs)
 
 
 def get_clusters(
     biosamples: list[str],
-    is_local: bool
+    data_location: str
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Fetch cluster data from NCBI's BigQuery `pdbrowser` dataset for the given
-    `biosamples`, or use existing data if `is_local` is True.
+    `biosamples` if `data_location` is 'bigquery', or read from existing output
+    CSV files if `data_location` is 'local`, otherwise read from --browser-tsv
+    file.
 
     Return `isolates_df` DataFrame with isolate-level metadata, and
     `clusters_df` DataFrame with cluster-level metadata. Additionally, the
     DataFrames' data is written to a CSV in the output directory.
     """
-    bq_isolates_csv = os.path.join(
+    isolates_csv = os.path.join(
         os.environ['NCT_OUT_SUBDIR'],
-        f'bq_isolates_{os.environ["NCT_NOW"]}.csv'
+        f'isolates_{os.environ["NCT_NOW"]}.csv'
     )
-    bq_clusters_csv = os.path.join(
+    clusters_csv = os.path.join(
         os.environ['NCT_OUT_SUBDIR'],
-        f'bq_clusters_{os.environ["NCT_NOW"]}.csv'
+        f'clusters_{os.environ["NCT_NOW"]}.csv'
     )
 
-    if not is_local:
+    if data_location == 'bigquery':
         clusters = query.query_set_of_clusters(biosamples)
         isolates_df = query.query_isolates(clusters, biosamples)
+        # TODO: query_clusters() should be replaceable with cluster_df_from_isolates_df()
         clusters_df = query.query_clusters(biosamples)
-        isolates_df.to_csv(bq_isolates_csv, index=False)
+        isolates_df.to_csv(isolates_csv, index=False)
+    elif data_location == 'local':
+        isolates_df = pd.read_csv(isolates_csv)
+        clusters_df = pd.read_csv(clusters_csv)
     else:
-        isolates_df = pd.read_csv(bq_isolates_csv)
-        clusters_df = pd.read_csv(bq_clusters_csv)
+        browser_df = pd.read_csv(data_location, sep='\t', low_memory=False)
+        isolates_df = query.isolates_df_from_browser_df(browser_df)
+        clusters_df = query.cluster_df_from_isolates_df(isolates_df)
+        isolates_df.to_csv(isolates_csv, index=False)
 
-    # compare to previous counts
     return (isolates_df, clusters_df)
 
 
