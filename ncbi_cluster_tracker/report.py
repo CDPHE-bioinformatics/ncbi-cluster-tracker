@@ -344,23 +344,26 @@ class ClusterReport:
         tree_url = self.clusters_df[
             self.clusters_df['cluster'] == self.cluster.name
         ]['tree_url'].item()
+        browser_link_base = 'https://www.ncbi.nlm.nih.gov/pathogens/isolates/#'
 
         # Modify URL so that internal isolates are highlighted red
         tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
+        backup_link_all_internal = f'{browser_link_base}{'%20'.join(self.cluster.internal_isolates)}'
         tree_links = (
             f'Links to tree:\n\n' \
-            f'- [Highlight all internal isolates]({tree_url_all_internal})\n'
+            f'- [Highlight all internal isolates]({tree_url_all_internal}) ([Backup link]({backup_link_all_internal}))\n'
         )
         new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
         if new_internals:
             tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}'
-            tree_links = f'{tree_links}- [Highlight new internal isolates]({tree_url_new_internal})\n'
+            backup_link_new_internal = f'{browser_link_base}{'%20'.join(new_internals)}'
+            tree_links = f'{tree_links}- [Highlight new internal isolates]({tree_url_new_internal}) ([Backup link]({backup_link_new_internal}))\n'
         new_all = self.metadata.query('is_new == "yes"')['target_acc'].tolist()
         if new_all:
             tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}'
-            tree_links = f'{tree_links}- [Highlight all new isolates]({tree_url_new_all})\n'
+            backup_link_new_internal = f'{browser_link_base}{"%20".join(new_all)}'
+            tree_links = f'{tree_links}- [Highlight all new isolates]({tree_url_new_all}) ([Backup link]({backup_link_new_internal}))\n'
         cluster_base = self.cluster.name.split('.')[0]
-        tree_links = f'{tree_links}- [Backup link](https://www.ncbi.nlm.nih.gov/pathogens/isolates/#{cluster_base})'
         tree_links_block = ar.Text(tree_links)
 
         snp_header = ar.HTML('<h3>SNP distance matrix</h3>')
@@ -373,7 +376,7 @@ class ClusterReport:
             .reset_index()
             .drop(columns='index')
         )
-        new = '🆕' if self.clusters_df['change'].iloc[0] != '+0 / +0' else ''
+        new = '🆕' if self.clusters_df['change'].iloc[0] != 'new cluster' else ''
         report = ar.Group(
             blocks = [
                 title,

@@ -1,0 +1,28 @@
+[project]
+name = "ncbi-cluster-tracker"
+version = "0.1.0"
+description = "Create standalone HTML reports for tracking SNP clusters within NCBI Pathogen Detection"
+authors = [
+    {name = "Sam Baird",email = "sam.baird@state.co.us"}
+]
+license = {text = "GPL-3.0"}
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "arakawa (>=0.0.16,<0.0.17)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "plotly (>=6.0.1,<7.0.0)",
+    "dendropy (>=5.0.1,<6.0.0)",
+    "tqdm (>=4.67.1,<5.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "google-cloud-bigquery (>=3.31.0,<4.0.0)",
+    "matplotlib (>=3.10.1,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+ncbi-cluster-tracker = "ncbi_cluster_tracker.main:main"
