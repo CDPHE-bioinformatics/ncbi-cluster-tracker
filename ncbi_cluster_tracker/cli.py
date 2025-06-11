@@ -1,5 +1,6 @@
 import argparse
 
+from importlib.metadata import version
 
 def parse_args() -> argparse.Namespace:
     """
@@ -23,6 +24,12 @@ def parse_args() -> argparse.Namespace:
         '--browser-file',
         # TODO link to instructions
         help='Path to isolates TSV or CSV downloaded from the Pathogen Detection Isolates Browser with information for all internal and external isolates. When specified, data in file will be used instead of querying the BigQuery dataset.'
+    )
+    parser.add_argument(
+        '--version', '-v',
+        help='Print the version of ncbi_cluster_tracker and exit.',
+        action='version',
+        version=version('ncbi-cluster-tracker'),
     )
     mutex_group_compare = parser.add_mutually_exclusive_group()
     mutex_group_compare.add_argument(
