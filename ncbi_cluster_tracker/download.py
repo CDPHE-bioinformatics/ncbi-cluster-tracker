@@ -24,10 +24,10 @@ TAXGROUP_TO_ORGANISM = {
 }
 
 
-def download_cluster_files(clusters_df: pd.DataFrame):
+def download_cluster_files(clusters_df: pd.DataFrame, keep_files: bool) -> None:
     clusters_df['snp_url'] = clusters_df.apply(build_snp_url, axis=1)
     urls = clusters_df['snp_url'].to_list()
-    download_snps(urls)
+    download_snps(urls, keep_files)
 
 
 def build_ftp_base_url(taxgroup_name: str) -> str:
@@ -84,7 +84,7 @@ def build_tree_viewer_url(
     return url 
 
 
-def download_snps(urls: list[str]) -> None:
+def download_snps(urls: list[str], keep_files: bool) -> None:
     out_subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps')
     logger.info(f'Downloading SNP cluster data to {out_subdir}...')
     os.makedirs(out_subdir, exist_ok=True)
@@ -104,3 +104,8 @@ def download_snps(urls: list[str]) -> None:
             with open(destination, 'wb') as f:
                 f.write(response.content)
             shutil.unpack_archive(destination, out_subdir)
+            out_files = os.listdir(out_subdir)
+            for f in out_files:
+                if not f.endswith('.newick') and not keep_files:
+                    os.remove(os.path.join(out_subdir, f))
+            

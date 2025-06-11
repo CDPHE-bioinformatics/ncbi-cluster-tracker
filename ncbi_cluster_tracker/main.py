@@ -4,6 +4,7 @@ import datetime
 import glob
 import os
 import re
+import shutil
 import sys
 
 import arakawa as ar # type: ignore
@@ -55,7 +56,7 @@ def main() -> None:
             isolates_df, clusters_df = get_clusters(biosamples, args.browser_file)
         else:
             isolates_df, clusters_df = get_clusters(biosamples, 'bigquery')
-        download.download_cluster_files(clusters_df)
+        download.download_cluster_files(clusters_df, args.keep_snp_files)
     else:
         if latest_dir is None:
             raise FileNotFoundError(f'Could not find existing data at output directory {out_dir} for --retry')
@@ -66,6 +67,8 @@ def main() -> None:
     
     clusters_df['tree_url'] = clusters_df.apply(download.build_tree_viewer_url, axis=1)
     clusters = cluster.create_clusters(sample_sheet_df, isolates_df, clusters_df)
+    if not args.keep_snp_files:
+        shutil.rmtree(os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps'))
     isolates_df = report.mark_new_isolates(isolates_df, old_isolates_df)
     metadata = report.combine_metadata(sample_sheet_df, isolates_df)
     report.write_final_report(

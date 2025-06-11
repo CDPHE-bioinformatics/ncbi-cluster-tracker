@@ -26,6 +26,11 @@ def parse_args() -> argparse.Namespace:
         help='Path to isolates TSV or CSV downloaded from the Pathogen Detection Isolates Browser with information for all internal and external isolates. When specified, data in file will be used instead of querying the BigQuery dataset.'
     )
     parser.add_argument(
+        '--keep-snp-files',
+        help='Keep downloaded SNP and tree files in the output directory. By default, files are deleted after processing.',
+        action='store_true',
+    )
+    parser.add_argument(
         '--version', '-v',
         help='Print the version of ncbi_cluster_tracker and exit.',
         action='version',
