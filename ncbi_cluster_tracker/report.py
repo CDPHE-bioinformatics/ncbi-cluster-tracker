@@ -380,9 +380,14 @@ class ClusterReport:
             .reset_index()
             .drop(columns='index')
         )
-        new = '🆕' if self.clusters_df['change'].iloc[0] != 'new cluster' else ''
-        report = ar.Group(
-            blocks = [
+        if (
+            self.clusters_df['change'].iloc[0] == 'new cluster'
+            or not self.clusters_df['change'].iloc[0].startswith('+0')
+        ):
+            new = '🆕'
+        else:
+            new = ''
+        blocks = [
                 title,
                 count_blocks,
                 tree_header,
@@ -394,7 +399,9 @@ class ClusterReport:
                 count_graph,
                 table_header,
                 table,
-            ],
+        ]
+        report = ar.Group(
+            blocks = [b for b in blocks if b is not None],
             label=f'{new} {self.cluster.name} - {taxgroup_name}'
         )
         return report
