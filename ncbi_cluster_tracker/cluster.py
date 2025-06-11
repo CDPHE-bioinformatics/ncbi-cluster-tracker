@@ -14,6 +14,7 @@ class Cluster:
     Represents a SNP cluster on NCBI Pathogen Detection and its distance matrix. 
     """
     MAX_MATRIX_SIZE = 20
+    MAX_TREE_SIZE = 500
 
     def __init__(self, name: str, internal_isolates: list[str]):
         self.name = name
@@ -44,12 +45,28 @@ class Cluster:
 
         # Arakawa warns if matrix has > 500 cells so limit matrix
         if len(tree) > self.MAX_MATRIX_SIZE:
-            if len(internal_taxa) == self.MAX_MATRIX_SIZE:
+            if len(tree.taxon_namespace) > self.MAX_TREE_SIZE:
+                if 1 < len(internal_taxa) < self.MAX_MATRIX_SIZE:
+                    # filter down to just the first self.MAX_TREE_SIZE taxa
+                    tree.retain_taxa(internal_taxa)
+                    self.filtered_matrix_message = ( 
+                        f'SNP distance matrix filtered to show only internal isolates '
+                        f'since there are more than {self.MAX_TREE_SIZE} isolates in the cluster.'
+                    )
+                elif len(internal_taxa) == 1:
+                    tree = None
+                    self.filtered_matrix_message = (
+                        f'SNP distance matrix not displayed since there are '
+                        f'more than {self.MAX_TREE_SIZE} isolates and only '
+                        f'one internal isolate in the cluster.'
+                    )
+
+            elif len(internal_taxa) == self.MAX_MATRIX_SIZE:
                 # filter down taxa to just input isolates
                 tree.retain_taxa(internal_taxa)
                 self.filtered_matrix_message = ( 
-                    'SNP distance matrix filtered to show only the self.MAX_MATRIX_SIZE '
-                    'internal isolates.'
+                    f'SNP distance matrix filtered to show only the {self.MAX_MATRIX_SIZE} '
+                    f'internal isolates.'
                 )
             elif len(internal_taxa) < self.MAX_MATRIX_SIZE:
                 # filter down to include only the nearest external isolates

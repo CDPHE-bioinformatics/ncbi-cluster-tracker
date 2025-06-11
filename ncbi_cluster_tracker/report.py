@@ -41,7 +41,11 @@ class ClusterReport:
         Create heatmap of SNP distance matrix annotated with metadata.
         """
         if self.cluster.filtered_matrix is None:
-            return None
+            text = f'⚠️ WARNING: {self.cluster.filtered_matrix_message}'
+            snp_matrix = ar.Group(
+                ar.Text(text, name=self.cluster.name, label=self.cluster.name),
+            )
+            return snp_matrix
 
         matrix = self._add_metadata_to_matrix(self.cluster.filtered_matrix)
         matrix = self._rename_matrix_ids(matrix)
