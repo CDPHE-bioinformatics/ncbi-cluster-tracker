@@ -138,7 +138,12 @@ def get_clusters(
         isolates_df = pd.read_csv(isolates_csv)
         clusters_df = pd.read_csv(clusters_csv)
     else:
-        browser_df = pd.read_csv(data_location, sep='\t', low_memory=False)
+        if data_location.endswith('.tsv'):
+            browser_df = pd.read_csv(data_location, sep='\t', low_memory=False, on_bad_lines='warn')
+        elif data_location.endswith('.csv'):
+            browser_df = pd.read_csv(data_location, low_memory=False, on_bad_lines='warn')
+        else:
+            raise ValueError(f'Invalid file type (must be .tsv or .csv): {data_location}')
         isolates_df = query.isolates_df_from_browser_df(browser_df)
         clusters_df = query.cluster_df_from_isolates_df(isolates_df)
         isolates_df.to_csv(isolates_csv, index=False)
