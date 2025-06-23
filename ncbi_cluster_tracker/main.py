@@ -65,6 +65,9 @@ def main() -> None:
         logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
         isolates_df, clusters_df = get_clusters(biosamples, 'local')
     
+    amr_ref_df = download.download_amr_reference_file()  
+    amr_df = query.create_amr_df(isolates_df, amr_ref_df)
+
     clusters_df['tree_url'] = clusters_df.apply(download.build_tree_viewer_url, axis=1)
     clusters = cluster.create_clusters(sample_sheet_df, isolates_df, clusters_df)
     if not args.keep_snp_files:
@@ -151,7 +154,7 @@ def get_clusters(
         clusters_df = query.cluster_df_from_isolates_df(isolates_df)
         isolates_df.to_csv(isolates_csv, index=False)
 
-    return (isolates_df, clusters_df)
+    return isolates_df, clusters_df
 
 
 if __name__ == '__main__':

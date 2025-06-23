@@ -1,0 +1,536 @@
+PDT001587934.1	*id	
+PDT001588632.1	*id	
+PDT001588388.1	*id	
+PDT001588382.1	*id	
+PDT001588350.1	*id	
+PDT002119594.1	*id	
+PDT002116553.1	*id	
+PDT002327413.1	*id	
+PDT002283320.1	*id	
+PDT002283376.1	*id	
+PDT002276792.1	*id	
+PDT002373147.1	*id	
+PDT002634193.1	*id	
+PDT002712904.1	*id	
+PDT002712905.1	*id	
+PDT002716158.1	*id	
+PDT002712909.1	*id	
+PDT002716179.1	*id	
+PDT002712940.1	*id	
+PDT002712941.1	*id	
+PDT002712946.1	*id	
+PDT002712948.1	*id	
+PDT002714705.1	*id	
+PDT001277500.1	*id	
+PDT001318192.3	*id	
+PDT001600112.1	*id	
+PDT001551603.1	*id	
+PDT001611278.1	*id	
+PDT002122646.1	*id	
+PDT001692914.1	*id	
+PDT001663514.3	*id	
+PDT001709409.1	*id	
+PDT002046862.1	*id	
+PDT001848219.1	*id	
+PDT001848217.1	*id	
+PDT001830465.2	*id	
+PDT001830619.2	*id	
+PDT001831036.2	*id	
+PDT001860959.2	*id	
+PDT001870128.1	*id	
+PDT001870127.2	*id	
+PDT001931000.1	*id	
+PDT001896675.1	*id	
+PDT001942031.1	*id	
+PDT001942034.1	*id	
+PDT001942001.1	*id	
+PDT002016790.1	*id	
+PDT002025930.1	*id	
+PDT002100021.1	*id	
+PDT002079305.1	*id	
+PDT002045996.1	*id	
+PDT002064373.1	*id	
+PDT002064338.1	*id	
+PDT002123837.1	*id	
+PDT002123830.1	*id	
+PDT002085160.1	*id	
+PDT002088621.1	*id	
+PDT002135348.1	*id	
+PDT002145057.1	*id	
+PDT002145050.1	*id	
+PDT002145345.1	*id	
+PDT002145344.1	*id	
+PDT002179672.1	*id	
+PDT002174272.1	*id	
+PDT002589412.1	*id	
+PDT002466486.1	*id	
+PDT002239856.1	*id	
+PDT002759802.1	*id	
+PDT002743139.1	*id	
+PDT002743462.1	*id	
+PDT002742673.1	*id	
+PDT002742672.1	*id	
+PDT002742671.1	*id	
+PDT002743047.1	*id	
+PDT002743449.1	*id	
+PDT002743448.1	*id	
+PDT002743399.1	*id	
+PDT002743240.1	*id	
+PDT002743191.1	*id	
+PDT002743847.1	*id	
+PDT002743846.1	*id	
+PDT002744461.1	*id	
+PDT002744121.1	*id	
+PDT002743696.1	*id	
+PDT002743695.1	*id	
+PDT002743694.1	*id	
+PDT002744370.1	*id	
+PDT002744220.1	*id	
+PDT002744219.1	*id	
+PDT002743688.1	*id	
+PDT002743686.1	*id	
+PDT002744032.1	*id	
+PDT002744025.1	*id	
+PDT002744023.1	*id	
+PDT002744022.1	*id	
+PDT002744013.1	*id	
+PDT002744012.1	*id	
+PDT002743653.1	*id	
+PDT002743634.1	*id	
+PDT002744347.1	*id	
+PDT002744346.1	*id	
+PDT002744345.1	*id	
+PDT002744344.1	*id	
+PDT002743620.1	*id	
+PDT002743964.1	*id	
+PDT002743962.1	*id	
+PDT002744148.1	*id	
+PDT002376517.1	*id	
+PDT002401833.1	*id	lab_id_11
+PDT002406853.1	*id	
+PDT002429760.1	*id	
+PDT002630589.1	*id	
+PDT002631216.1	*id	
+PDT002631015.1	*id	
+PDT002630518.1	*id	
+PDT002631125.1	*id	
+PDT002630693.1	*id	
+PDT002630779.1	*id	
+PDT002483210.1	*id	
+PDT002497253.1	*id	
+PDT002505935.1	*id	
+PDT002500107.1	*id	
+PDT002512927.1	*id	
+PDT002512915.1	*id	
+PDT002721111.1	*id	
+PDT002609740.1	*id	
+PDT002614012.1	*id	
+PDT002709450.1	*id	
+PDT002709749.1	*id	
+PDT002709747.1	*id	
+PDT002709587.1	*id	
+PDT002697828.1	*id	
+PDT002758841.1	*id	
+PDT002767166.1	*id	
+PDT001587934.1	*isolate_id	ERS7956178
+PDT001588632.1	*isolate_id	ERS7956384
+PDT001588388.1	*isolate_id	ERS7956512
+PDT001588382.1	*isolate_id	ERS7956511
+PDT001588350.1	*isolate_id	ERS7956632
+PDT002119594.1	*isolate_id	ERS17700376
+PDT002116553.1	*isolate_id	ERS17700405
+PDT002327413.1	*isolate_id	12471121
+PDT002283320.1	*isolate_id	ERS20013809
+PDT002283376.1	*isolate_id	ERS20013875
+PDT002276792.1	*isolate_id	ERS20621142
+PDT002373147.1	*isolate_id	ERS20862908
+PDT002634193.1	*isolate_id	DAMRST0496_VC_WHITE-Ecoli
+PDT002712904.1	*isolate_id	AS11-001-P
+PDT002712905.1	*isolate_id	AS11-005
+PDT002716158.1	*isolate_id	AS16-004
+PDT002712909.1	*isolate_id	AS16-005
+PDT002716179.1	*isolate_id	AV11-001
+PDT002712940.1	*isolate_id	AV11-002
+PDT002712941.1	*isolate_id	AV11-003
+PDT002712946.1	*isolate_id	AV16-001
+PDT002712948.1	*isolate_id	AV16-005
+PDT002714705.1	*isolate_id	288099
+PDT001277500.1	*isolate_id	YNHE144
+PDT001318192.3	*isolate_id	2022CK-00323
+PDT001600112.1	*isolate_id	2022EL-01016
+PDT001551603.1	*isolate_id	PNUSAE115171
+PDT001611278.1	*isolate_id	22.1555
+PDT002122646.1	*isolate_id	6.714-2021
+PDT001692914.1	*isolate_id	Colony-699
+PDT001663514.3	*isolate_id	2023BB-00019
+PDT001709409.1	*isolate_id	2023EL-00173
+PDT002046862.1	*isolate_id	R-1.1.1
+PDT001848219.1	*isolate_id	MGH4B
+PDT001848217.1	*isolate_id	MGH4C
+PDT001830465.2	*isolate_id	BWH_1153_E_col
+PDT001830619.2	*isolate_id	BWH_848_E_col
+PDT001831036.2	*isolate_id	BWH_1238_E_col
+PDT001860959.2	*isolate_id	2023QW-00178
+PDT001870128.1	*isolate_id	2023DK-00244
+PDT001870127.2	*isolate_id	2023DK-00245
+PDT001931000.1	*isolate_id	UPEC46_R.R_LAU
+PDT001896675.1	*isolate_id	SRS18956811
+PDT001942031.1	*isolate_id	23-C-SD-97
+PDT001942034.1	*isolate_id	23-C-SD-99
+PDT001942001.1	*isolate_id	23-M-SY-68
+PDT002016790.1	*isolate_id	EC01216
+PDT002025930.1	*isolate_id	2023KU-00502
+PDT002100021.1	*isolate_id	EcLESPA_130
+PDT002079305.1	*isolate_id	ACESH2917
+PDT002045996.1	*isolate_id	2023JQ-00658
+PDT002064373.1	*isolate_id	MRSN943173
+PDT002064338.1	*isolate_id	MRSN951845
+PDT002123837.1	*isolate_id	MRSN101993
+PDT002123830.1	*isolate_id	MRSN102018
+PDT002085160.1	*isolate_id	2024CW-00001
+PDT002088621.1	*isolate_id	2024DK-00044
+PDT002135348.1	*isolate_id	SRS20971185
+PDT002145057.1	*isolate_id	AUSMDU00063030
+PDT002145050.1	*isolate_id	AUSMDU00063887
+PDT002145345.1	*isolate_id	AUSMDU00065821
+PDT002145344.1	*isolate_id	AUSMDU00065857
+PDT002179672.1	*isolate_id	AUSMDU00095715
+PDT002174272.1	*isolate_id	2024CR-00036
+PDT002589412.1	*isolate_id	10035558-1
+PDT002466486.1	*isolate_id	Enterotoxigenic E.coli (ETEC)
+PDT002239856.1	*isolate_id	2024DK-00194
+PDT002759802.1	*isolate_id	A27622
+PDT002743139.1	*isolate_id	A111017HE1
+PDT002743462.1	*isolate_id	A180002HE2
+PDT002742673.1	*isolate_id	A195018HE1
+PDT002742672.1	*isolate_id	A195018HE2
+PDT002742671.1	*isolate_id	A195018HE3
+PDT002743047.1	*isolate_id	A212007HE1
+PDT002743449.1	*isolate_id	A218015HE1
+PDT002743448.1	*isolate_id	A218015HE2
+PDT002743399.1	*isolate_id	AH0057HE1
+PDT002743240.1	*isolate_id	AH0080HE3
+PDT002743191.1	*isolate_id	AH0153HE1
+PDT002743847.1	*isolate_id	AH0232HE1
+PDT002743846.1	*isolate_id	AH0232HE2
+PDT002744461.1	*isolate_id	AH0249HE1
+PDT002744121.1	*isolate_id	AH0307HE3
+PDT002743696.1	*isolate_id	AH0488HE1
+PDT002743695.1	*isolate_id	AH0488HE2
+PDT002743694.1	*isolate_id	AH0490HE1
+PDT002744370.1	*isolate_id	AH0525HE1
+PDT002744220.1	*isolate_id	AH0536HE2
+PDT002744219.1	*isolate_id	AH0536HE3
+PDT002743688.1	*isolate_id	AH0574HE1
+PDT002743686.1	*isolate_id	AH0574HE2
+PDT002744032.1	*isolate_id	AH0598HE1
+PDT002744025.1	*isolate_id	AH0612HC1
+PDT002744023.1	*isolate_id	AH0612HE1
+PDT002744022.1	*isolate_id	AH0612HE2
+PDT002744013.1	*isolate_id	AH0617HE1
+PDT002744012.1	*isolate_id	AH0617HE2
+PDT002743653.1	*isolate_id	AH0662HE1
+PDT002743634.1	*isolate_id	AH0670HE3
+PDT002744347.1	*isolate_id	AH0704HE1
+PDT002744346.1	*isolate_id	AH0704HE2
+PDT002744345.1	*isolate_id	AH0705HE1
+PDT002744344.1	*isolate_id	AH0705HE2
+PDT002743620.1	*isolate_id	AH0759HE1
+PDT002743964.1	*isolate_id	AH0790HE1
+PDT002743962.1	*isolate_id	AH0792HE1
+PDT002744148.1	*isolate_id	AH0890HE1
+PDT002376517.1	*isolate_id	89_Alex_S319
+PDT002401833.1	*isolate_id	2024CJ-00102
+PDT002406853.1	*isolate_id	2024QW-00172
+PDT002429760.1	*isolate_id	2024QW-00188
+PDT002630589.1	*isolate_id	FIJ0313
+PDT002631216.1	*isolate_id	FIJ0343
+PDT002631015.1	*isolate_id	FIJ0373
+PDT002630518.1	*isolate_id	FIJ0573
+PDT002631125.1	*isolate_id	FIJ0620
+PDT002630693.1	*isolate_id	FIJ0630
+PDT002630779.1	*isolate_id	FIJ0688
+PDT002483210.1	*isolate_id	E. coli S1-KEN-09-A
+PDT002497253.1	*isolate_id	2024KU-00523
+PDT002505935.1	*isolate_id	1012053
+PDT002500107.1	*isolate_id	2024LN-00189
+PDT002512927.1	*isolate_id	EC01522
+PDT002512915.1	*isolate_id	EC01532
+PDT002721111.1	*isolate_id	32B22CPO016A
+PDT002609740.1	*isolate_id	Complete genom of Escherichia coli NNEc 2846
+PDT002614012.1	*isolate_id	2025LN-00030
+PDT002709450.1	*isolate_id	14572
+PDT002709749.1	*isolate_id	15566
+PDT002709747.1	*isolate_id	15567
+PDT002709587.1	*isolate_id	16371
+PDT002697828.1	*isolate_id	2025LY00028
+PDT002758841.1	*isolate_id	2025CR-00029
+PDT002767166.1	*isolate_id	2024LN-01409
+PDT001587934.1	*collection_date	
+PDT001588632.1	*collection_date	
+PDT001588388.1	*collection_date	
+PDT001588382.1	*collection_date	
+PDT001588350.1	*collection_date	
+PDT002119594.1	*collection_date	2021
+PDT002116553.1	*collection_date	2021
+PDT002327413.1	*collection_date	2022-07-06
+PDT002283320.1	*collection_date	
+PDT002283376.1	*collection_date	
+PDT002276792.1	*collection_date	2021
+PDT002373147.1	*collection_date	2023-01-01
+PDT002634193.1	*collection_date	2021-01-01
+PDT002712904.1	*collection_date	2023-08-01
+PDT002712905.1	*collection_date	2023-08-01
+PDT002716158.1	*collection_date	2023-08-01
+PDT002712909.1	*collection_date	2023-08-01
+PDT002716179.1	*collection_date	2023-08-01
+PDT002712940.1	*collection_date	2023-08-01
+PDT002712941.1	*collection_date	2023-08-01
+PDT002712946.1	*collection_date	2023-08-01
+PDT002712948.1	*collection_date	2023-08-01
+PDT002714705.1	*collection_date	2022-05-13
+PDT001277500.1	*collection_date	2021-05-04
+PDT001318192.3	*collection_date	2022-02-27
+PDT001600112.1	*collection_date	2022
+PDT001551603.1	*collection_date	2022-09
+PDT001611278.1	*collection_date	2022
+PDT002122646.1	*collection_date	2021
+PDT001692914.1	*collection_date	2022-09-11
+PDT001663514.3	*collection_date	2023
+PDT001709409.1	*collection_date	2023
+PDT002046862.1	*collection_date	
+PDT001848219.1	*collection_date	2021-10-01
+PDT001848217.1	*collection_date	2021-10-19
+PDT001830465.2	*collection_date	2023
+PDT001830619.2	*collection_date	2022
+PDT001831036.2	*collection_date	2023
+PDT001860959.2	*collection_date	2023
+PDT001870128.1	*collection_date	2023
+PDT001870127.2	*collection_date	2023
+PDT001931000.1	*collection_date	2022-09-20
+PDT001896675.1	*collection_date	2023-04-18
+PDT001942031.1	*collection_date	2023-02
+PDT001942034.1	*collection_date	2023-02
+PDT001942001.1	*collection_date	2023-02
+PDT002016790.1	*collection_date	2022
+PDT002025930.1	*collection_date	2023-09-30
+PDT002100021.1	*collection_date	2023
+PDT002079305.1	*collection_date	2021
+PDT002045996.1	*collection_date	2023
+PDT002064373.1	*collection_date	2021-08-24
+PDT002064338.1	*collection_date	2021-09-01
+PDT002123837.1	*collection_date	2021-12-06
+PDT002123830.1	*collection_date	2021-07-12
+PDT002085160.1	*collection_date	2024
+PDT002088621.1	*collection_date	2024
+PDT002135348.1	*collection_date	2023-12-12
+PDT002145057.1	*collection_date	2021
+PDT002145050.1	*collection_date	2021
+PDT002145345.1	*collection_date	2021
+PDT002145344.1	*collection_date	2021
+PDT002179672.1	*collection_date	2023
+PDT002174272.1	*collection_date	2024
+PDT002589412.1	*collection_date	2023-10-16
+PDT002466486.1	*collection_date	2022
+PDT002239856.1	*collection_date	2024
+PDT002759802.1	*collection_date	2022
+PDT002743139.1	*collection_date	2021
+PDT002743462.1	*collection_date	2021
+PDT002742673.1	*collection_date	2021
+PDT002742672.1	*collection_date	2021
+PDT002742671.1	*collection_date	2021
+PDT002743047.1	*collection_date	2021
+PDT002743449.1	*collection_date	2021
+PDT002743448.1	*collection_date	2021
+PDT002743399.1	*collection_date	2021
+PDT002743240.1	*collection_date	2021
+PDT002743191.1	*collection_date	2021
+PDT002743847.1	*collection_date	2021
+PDT002743846.1	*collection_date	2021
+PDT002744461.1	*collection_date	2021
+PDT002744121.1	*collection_date	2021
+PDT002743696.1	*collection_date	2021
+PDT002743695.1	*collection_date	2021
+PDT002743694.1	*collection_date	2021
+PDT002744370.1	*collection_date	2021
+PDT002744220.1	*collection_date	2021
+PDT002744219.1	*collection_date	2021
+PDT002743688.1	*collection_date	2021
+PDT002743686.1	*collection_date	2021
+PDT002744032.1	*collection_date	2021
+PDT002744025.1	*collection_date	2021
+PDT002744023.1	*collection_date	2021
+PDT002744022.1	*collection_date	2021
+PDT002744013.1	*collection_date	2021
+PDT002744012.1	*collection_date	2021
+PDT002743653.1	*collection_date	2021
+PDT002743634.1	*collection_date	2021
+PDT002744347.1	*collection_date	2021
+PDT002744346.1	*collection_date	2021
+PDT002744345.1	*collection_date	2021
+PDT002744344.1	*collection_date	2021
+PDT002743620.1	*collection_date	2021
+PDT002743964.1	*collection_date	2021
+PDT002743962.1	*collection_date	2021
+PDT002744148.1	*collection_date	2021
+PDT002376517.1	*collection_date	2023-11-21
+PDT002401833.1	*collection_date	2024-10-01
+PDT002406853.1	*collection_date	2024
+PDT002429760.1	*collection_date	2024
+PDT002630589.1	*collection_date	2021-01-11
+PDT002631216.1	*collection_date	2021-01-25
+PDT002631015.1	*collection_date	2021-01-19
+PDT002630518.1	*collection_date	2022-06-15
+PDT002631125.1	*collection_date	2022-07-06
+PDT002630693.1	*collection_date	2022-07-09
+PDT002630779.1	*collection_date	2022-08-24
+PDT002483210.1	*collection_date	2022
+PDT002497253.1	*collection_date	2024-11-01
+PDT002505935.1	*collection_date	2023-09-11
+PDT002500107.1	*collection_date	2024-02-26
+PDT002512927.1	*collection_date	2024
+PDT002512915.1	*collection_date	2024
+PDT002721111.1	*collection_date	2022
+PDT002609740.1	*collection_date	2023-03-27
+PDT002614012.1	*collection_date	2025
+PDT002709450.1	*collection_date	2022
+PDT002709749.1	*collection_date	2022
+PDT002709747.1	*collection_date	2022
+PDT002709587.1	*collection_date	2022
+PDT002697828.1	*collection_date	2025
+PDT002758841.1	*collection_date	2025
+PDT002767166.1	*collection_date	2024
+PDT001587934.1	*geo_loc_name	Malawi
+PDT001588632.1	*geo_loc_name	Malawi
+PDT001588388.1	*geo_loc_name	Malawi
+PDT001588382.1	*geo_loc_name	Malawi
+PDT001588350.1	*geo_loc_name	Malawi
+PDT002119594.1	*geo_loc_name	Tanzania
+PDT002116553.1	*geo_loc_name	Tanzania
+PDT002327413.1	*geo_loc_name	Ethiopia
+PDT002283320.1	*geo_loc_name	Denmark
+PDT002283376.1	*geo_loc_name	Denmark
+PDT002276792.1	*geo_loc_name	Tanzania
+PDT002373147.1	*geo_loc_name	Germany
+PDT002634193.1	*geo_loc_name	Tanzania
+PDT002712904.1	*geo_loc_name	Slovenia
+PDT002712905.1	*geo_loc_name	Slovenia
+PDT002716158.1	*geo_loc_name	Slovenia
+PDT002712909.1	*geo_loc_name	Slovenia
+PDT002716179.1	*geo_loc_name	Slovenia
+PDT002712940.1	*geo_loc_name	Slovenia
+PDT002712941.1	*geo_loc_name	Slovenia
+PDT002712946.1	*geo_loc_name	Slovenia
+PDT002712948.1	*geo_loc_name	Slovenia
+PDT002714705.1	*geo_loc_name	Mali
+PDT001277500.1	*geo_loc_name	China:Yunnan
+PDT001318192.3	*geo_loc_name	USA
+PDT001600112.1	*geo_loc_name	USA
+PDT001551603.1	*geo_loc_name	USA
+PDT001611278.1	*geo_loc_name	USA:PA
+PDT002122646.1	*geo_loc_name	Peru: Lima
+PDT001692914.1	*geo_loc_name	Cambodia: Phnom Penh
+PDT001663514.3	*geo_loc_name	USA
+PDT001709409.1	*geo_loc_name	USA
+PDT002046862.1	*geo_loc_name	Germany: Lower Saxony
+PDT001848219.1	*geo_loc_name	Lebanon
+PDT001848217.1	*geo_loc_name	Lebanon
+PDT001830465.2	*geo_loc_name	USA:Boston
+PDT001830619.2	*geo_loc_name	USA:Boston
+PDT001831036.2	*geo_loc_name	USA:Boston
+PDT001860959.2	*geo_loc_name	USA
+PDT001870128.1	*geo_loc_name	USA
+PDT001870127.2	*geo_loc_name	USA
+PDT001931000.1	*geo_loc_name	Lebanon: Byblos
+PDT001896675.1	*geo_loc_name	USA: NC
+PDT001942031.1	*geo_loc_name	China: Zhejiang
+PDT001942034.1	*geo_loc_name	China: Zhejiang
+PDT001942001.1	*geo_loc_name	China: Zhejiang
+PDT002016790.1	*geo_loc_name	USA: Pittsburgh, Pennsylvania
+PDT002025930.1	*geo_loc_name	USA
+PDT002100021.1	*geo_loc_name	Mexico:Aguascalientes
+PDT002079305.1	*geo_loc_name	China: Guangxi
+PDT002045996.1	*geo_loc_name	USA
+PDT002064373.1	*geo_loc_name	Germany:Landstuhl
+PDT002064338.1	*geo_loc_name	USA:Maryland,Bethesda
+PDT002123837.1	*geo_loc_name	Kenya: Busia
+PDT002123830.1	*geo_loc_name	Kenya: Kisumu
+PDT002085160.1	*geo_loc_name	USA
+PDT002088621.1	*geo_loc_name	USA
+PDT002135348.1	*geo_loc_name	USA: NC
+PDT002145057.1	*geo_loc_name	Australia:Victoria
+PDT002145050.1	*geo_loc_name	Australia:Victoria
+PDT002145345.1	*geo_loc_name	Australia:Victoria
+PDT002145344.1	*geo_loc_name	Australia:Victoria
+PDT002179672.1	*geo_loc_name	Fiji
+PDT002174272.1	*geo_loc_name	USA
+PDT002589412.1	*geo_loc_name	China:Qingdao
+PDT002466486.1	*geo_loc_name	Bangladesh
+PDT002239856.1	*geo_loc_name	USA
+PDT002759802.1	*geo_loc_name	Germany
+PDT002743139.1	*geo_loc_name	Guatemala
+PDT002743462.1	*geo_loc_name	Guatemala
+PDT002742673.1	*geo_loc_name	Guatemala
+PDT002742672.1	*geo_loc_name	Guatemala
+PDT002742671.1	*geo_loc_name	Guatemala
+PDT002743047.1	*geo_loc_name	Guatemala
+PDT002743449.1	*geo_loc_name	Guatemala
+PDT002743448.1	*geo_loc_name	Guatemala
+PDT002743399.1	*geo_loc_name	Guatemala
+PDT002743240.1	*geo_loc_name	Guatemala
+PDT002743191.1	*geo_loc_name	Guatemala
+PDT002743847.1	*geo_loc_name	Guatemala
+PDT002743846.1	*geo_loc_name	Guatemala
+PDT002744461.1	*geo_loc_name	Guatemala
+PDT002744121.1	*geo_loc_name	Guatemala
+PDT002743696.1	*geo_loc_name	Guatemala
+PDT002743695.1	*geo_loc_name	Guatemala
+PDT002743694.1	*geo_loc_name	Guatemala
+PDT002744370.1	*geo_loc_name	Guatemala
+PDT002744220.1	*geo_loc_name	Guatemala
+PDT002744219.1	*geo_loc_name	Guatemala
+PDT002743688.1	*geo_loc_name	Guatemala
+PDT002743686.1	*geo_loc_name	Guatemala
+PDT002744032.1	*geo_loc_name	Guatemala
+PDT002744025.1	*geo_loc_name	Guatemala
+PDT002744023.1	*geo_loc_name	Guatemala
+PDT002744022.1	*geo_loc_name	Guatemala
+PDT002744013.1	*geo_loc_name	Guatemala
+PDT002744012.1	*geo_loc_name	Guatemala
+PDT002743653.1	*geo_loc_name	Guatemala
+PDT002743634.1	*geo_loc_name	Guatemala
+PDT002744347.1	*geo_loc_name	Guatemala
+PDT002744346.1	*geo_loc_name	Guatemala
+PDT002744345.1	*geo_loc_name	Guatemala
+PDT002744344.1	*geo_loc_name	Guatemala
+PDT002743620.1	*geo_loc_name	Guatemala
+PDT002743964.1	*geo_loc_name	Guatemala
+PDT002743962.1	*geo_loc_name	Guatemala
+PDT002744148.1	*geo_loc_name	Guatemala
+PDT002376517.1	*geo_loc_name	Ghana: University of Ghana Hospital
+PDT002401833.1	*geo_loc_name	USA
+PDT002406853.1	*geo_loc_name	USA
+PDT002429760.1	*geo_loc_name	USA
+PDT002630589.1	*geo_loc_name	Fiji: Suva
+PDT002631216.1	*geo_loc_name	Fiji: Suva
+PDT002631015.1	*geo_loc_name	Fiji: Suva
+PDT002630518.1	*geo_loc_name	Fiji: Suva
+PDT002631125.1	*geo_loc_name	Fiji: Suva
+PDT002630693.1	*geo_loc_name	Fiji: Suva
+PDT002630779.1	*geo_loc_name	Fiji: Suva
+PDT002483210.1	*geo_loc_name	Switzerland
+PDT002497253.1	*geo_loc_name	USA
+PDT002505935.1	*geo_loc_name	Spain: Aragon, Zaragoza
+PDT002500107.1	*geo_loc_name	USA: Maricopa County, Arizona
+PDT002512927.1	*geo_loc_name	USA: Pittsburgh, Pennsylvania
+PDT002512915.1	*geo_loc_name	USA: Pittsburgh, Pennsylvania
+PDT002721111.1	*geo_loc_name	Canada: Ottawa
+PDT002609740.1	*geo_loc_name	Russia
+PDT002614012.1	*geo_loc_name	USA: Arizona
+PDT002709450.1	*geo_loc_name	Chile: Santiago
+PDT002709749.1	*geo_loc_name	Chile: Molina
+PDT002709747.1	*geo_loc_name	Chile: Molina
+PDT002709587.1	*geo_loc_name	Chile: Santiago
+PDT002697828.1	*geo_loc_name	USA
+PDT002758841.1	*geo_loc_name	USA
+PDT002767166.1	*geo_loc_name	USA: Arizona

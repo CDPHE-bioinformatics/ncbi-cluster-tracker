@@ -1,8 +1,10 @@
+import io
 import os
 import re
 import requests
 import shutil
 
+import numpy as np
 import pandas as pd
 import tqdm
 
@@ -109,3 +111,11 @@ def download_snps(urls: list[str], keep_files: bool) -> None:
                 if not f.endswith('.newick') and not keep_files:
                     os.remove(os.path.join(out_subdir, f))
             
+
+def download_amr_reference_file() -> pd.DataFrame:
+    url = 'https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/ReferenceGeneCatalog.txt'
+    response = requests.get(url)
+    df = pd.read_csv(io.BytesIO(response.content), sep='\t')
+    df['element'] = np.where(df['allele'].notna(), df['allele'], df['gene_family'])
+    df = df[['element', 'product_name', 'class', 'subclass']]
+    return df
