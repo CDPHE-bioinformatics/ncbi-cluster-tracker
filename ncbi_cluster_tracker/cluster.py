@@ -104,8 +104,8 @@ class Cluster:
                 tree = None
                 self.filtered_matrix = None
                 self.filtered_matrix_message = (
-                    'SNP distance matrix not displayed since there are over '
-                    'self.MAX_MATRIX_SIZE internal isolates in the cluster.'
+                    f'SNP distance matrix not displayed since there are over '
+                    f'{self.MAX_MATRIX_SIZE} internal isolates in the cluster.'
                 ) 
         if tree is not None:
             matrix = tree.phylogenetic_distance_matrix().as_data_table()
