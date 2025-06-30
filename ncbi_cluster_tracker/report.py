@@ -739,6 +739,6 @@ def write_final_report(
             os.environ['NCT_OUT_SUBDIR'],
             f'clusters_{os.environ['NCT_NOW']}.html'
         ),
-        standalone=True,
+        standalone=False,
     )
 
