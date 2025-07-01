@@ -356,23 +356,26 @@ class ClusterReport:
         ]['tree_url'].item()
         browser_link_base = 'https://www.ncbi.nlm.nih.gov/pathogens/isolates/#'
 
-        # Modify URL so that internal isolates are highlighted red
-        tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
+        # Modify URL so that internal isolates are selected red
+        new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
+        if new_internals:
+            tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}&accessions2={','.join(new_internals)}'
+        else:
+            tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
         backup_link_all_internal = f'{browser_link_base}{'%20'.join(self.cluster.internal_isolates)}'
         tree_links = (
             f'Links to tree:\n\n' \
-            f'- [Highlight all internal isolates]({tree_url_all_internal}) ([Backup link]({backup_link_all_internal}))\n'
+            f'- [Select all internal isolates (bold new internal)]({tree_url_all_internal}) ([Backup link]({backup_link_all_internal}))\n'
         )
-        new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
         if new_internals:
-            tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}'
+            tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}&accessions2={','.join(self.cluster.internal_isolates)}'
             backup_link_new_internal = f'{browser_link_base}{'%20'.join(new_internals)}'
-            tree_links = f'{tree_links}- [Highlight new internal isolates]({tree_url_new_internal}) ([Backup link]({backup_link_new_internal}))\n'
+            tree_links = f'{tree_links}- [Select new internal isolates (bold all internal)]({tree_url_new_internal}) ([Backup link]({backup_link_new_internal}))\n'
         new_all = self.metadata.query('is_new == "yes"')['target_acc'].tolist()
         if new_all:
-            tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}'
+            tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}&accessions2={','.join(self.cluster.internal_isolates)}'
             backup_link_new_internal = f'{browser_link_base}{"%20".join(new_all)}'
-            tree_links = f'{tree_links}- [Highlight all new isolates]({tree_url_new_all}) ([Backup link]({backup_link_new_internal}))\n'
+            tree_links = f'{tree_links}- [Select all new isolates (bold all internal)]({tree_url_new_all}) ([Backup link]({backup_link_new_internal}))\n'
         cluster_base = self.cluster.name.split('.')[0]
         tree_links_block = ar.Text(tree_links)
 
