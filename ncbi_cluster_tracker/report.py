@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import os
 
@@ -150,7 +151,10 @@ class ClusterReport:
         """
         Add columns with basic metadata to the distance matrix.
         """
-        matrix = (self.metadata_truncated[['target_acc', *self.PRIMARY_METADATA_COLS]]
+        columns = self.PRIMARY_METADATA_COLS.copy()
+        if 'filtered_amr' in self.metadata.columns:
+            columns.append('filtered_amr')
+        matrix = (self.metadata_truncated[['target_acc', *columns]]
             .set_index('target_acc')
             .merge(
                 matrix,
@@ -315,6 +319,8 @@ class ClusterReport:
         cols = self.PRIMARY_METADATA_COLS.copy()
         if 'id' in self.metadata.columns:
             cols.insert(0, 'id')
+        if 'filtered_amr' in self.metadata.columns:
+            cols.append('filtered_amr')
 
         # prefix label with star to avoid collision with Pathogen Detection
         star_cols = {k: f'*{k}' for k in cols}
@@ -425,7 +431,9 @@ def mark_new_isolates(
 
 def combine_metadata(
     sample_sheet_df: pd.DataFrame,
-    isolates_df: pd.DataFrame
+    isolates_df: pd.DataFrame,
+    amr_df: pd.DataFrame | None,
+    args: argparse.Namespace,
 ) -> pd.DataFrame:
     """
     Combine user-provided data in sample sheet with sample metadata
@@ -456,6 +464,15 @@ def combine_metadata(
         'both': 'internal',
     })
     optional_id = ['id'] if 'id' in metadata.columns else []
+
+    filtered_amr_col = []
+    if amr_df is not None and args.filter_amr:
+        reduced_df = amr_df[['biosample', 'element']]
+        reduced_df = reduced_df.groupby('biosample')['element'].agg(','.join).reset_index()
+        reduced_df = reduced_df.rename(columns={'element': 'filtered_amr'})
+        metadata = pd.merge(metadata, reduced_df, how='left', on='biosample')
+        filtered_amr_col = ['filtered_amr']
+
     column_order = [
         'biosample',
         *optional_id,
@@ -472,6 +489,7 @@ def combine_metadata(
         'bioproject_acc',
         'target_acc',
         'sra_id',
+        *filtered_amr_col,
     ]
     extra_internal_cols = [c for c in metadata.columns if c not in column_order]
     extra_internal_cols.sort()
@@ -636,7 +654,7 @@ def write_final_report(
      old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
-     sample_sheet: str,
+     amr_df: pd.DataFrame,
      compare_dir: str | None,
      command: str
 ) -> None:
@@ -724,14 +742,27 @@ def write_final_report(
 
     cluster_report_blocks = [r.report for r in cluster_reports]
     cluster_report_blocks.sort(key=lambda r: r.label, reverse=True)
-    report = ar.Blocks(
+
+    report_blocks = [
         ar.Page(blocks=cluster_page_blocks, title='Clusters'),
-        ar.Page(blocks=isolate_page_blocks, title='Isolates'),
         ar.Page(
             ar.Select(blocks=cluster_report_blocks, type=ar.SelectType.DROPDOWN),
             title='Cluster details',
+        ),
+        ar.Page(blocks=isolate_page_blocks, title='Isolates'),
+    ]
+
+    if amr_df is not None:
+        amr_table = ar.DataTable(
+            amr_df
+            .sort_values('biosample', ascending=False)
+            .reset_index()
+            .drop(columns='index')
         )
-    )
+        amr_page = ar.Page(blocks=[amr_table], title='AMR')
+        report_blocks.append(amr_page)
+
+    report = ar.Blocks(blocks=report_blocks)
 
     ar.save_report(
         report,

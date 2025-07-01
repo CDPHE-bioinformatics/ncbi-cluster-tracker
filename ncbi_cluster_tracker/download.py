@@ -117,5 +117,6 @@ def download_amr_reference_file() -> pd.DataFrame:
     response = requests.get(url)
     df = pd.read_csv(io.BytesIO(response.content), sep='\t')
     df['element'] = np.where(df['allele'].notna(), df['allele'], df['gene_family'])
-    df = df[['element', 'product_name', 'class', 'subclass']]
+    df = df[['element', 'product_name', 'class', 'subclass', 'hierarchy_node']]
+    df = df.drop_duplicates()
     return df

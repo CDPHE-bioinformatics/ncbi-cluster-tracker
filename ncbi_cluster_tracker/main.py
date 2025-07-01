@@ -21,7 +21,7 @@ from ncbi_cluster_tracker.logger import logger
 
 def main() -> None:
     command = f'{os.path.basename(sys.argv[0])} {" ".join(sys.argv[1:])}'
-    args = cli.parse_args()
+    args = cli.parse_args(sys.argv[1:])
     sample_sheet_df = (pd
         .read_csv(args.sample_sheet, dtype={'id': 'string'})
         .set_index('biosample', verify_integrity=True)
@@ -65,21 +65,26 @@ def main() -> None:
         logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
         isolates_df, clusters_df = get_clusters(biosamples, 'local')
     
-    amr_ref_df = download.download_amr_reference_file()  
-    amr_df = query.create_amr_df(isolates_df, amr_ref_df)
+    if args.amr:
+        amr_ref_df = download.download_amr_reference_file()  
+        amr_df = query.create_amr_df(isolates_df, amr_ref_df)
+        if args.filter_amr:
+            amr_df = query.filter_amr_df(amr_df, args.filter_amr)
+    else:
+        amr_df = None
 
     clusters_df['tree_url'] = clusters_df.apply(download.build_tree_viewer_url, axis=1)
     clusters = cluster.create_clusters(sample_sheet_df, isolates_df, clusters_df)
     if not args.keep_snp_files:
         shutil.rmtree(os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps'))
     isolates_df = report.mark_new_isolates(isolates_df, old_isolates_df)
-    metadata = report.combine_metadata(sample_sheet_df, isolates_df)
+    metadata = report.combine_metadata(sample_sheet_df, isolates_df, amr_df, args)
     report.write_final_report(
         clusters_df,
         old_clusters_df,
         clusters,
         metadata,
-        args.sample_sheet,
+        amr_df,
         compare_dir,
         command,
     )

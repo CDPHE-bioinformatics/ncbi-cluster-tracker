@@ -2,7 +2,7 @@ import argparse
 
 from importlib.metadata import version
 
-def parse_args() -> argparse.Namespace:
+def parse_args(command) -> argparse.Namespace:
     """
     Parse command-line arguments from the user.
     """
@@ -31,6 +31,16 @@ def parse_args() -> argparse.Namespace:
         action='store_true',
     )
     parser.add_argument(
+        '--amr',
+        help='Include AMR tab in report with antimicrobial resistance genes detected by AMRFinderPlus.',
+        action='store_true',
+    )
+    parser.add_argument(
+        '--filter-amr',
+        help='Only include AMR genes in provided comma-separated list of CLASS:SUBCLASS pairs in the AMR tab. Also adds filtered_amr column to Isolates and Cluster details tab and matching genes to tree labels',
+        type=lambda s: [i for i in s.split(',')],
+    )
+    parser.add_argument(
         '--version', '-v',
         help='Print the version of ncbi_cluster_tracker and exit.',
         action='version',
@@ -46,6 +56,14 @@ def parse_args() -> argparse.Namespace:
         help='Do not compare to most recent output directory, all clusters and isolates will be considered "new".',
         action='store_true',
     )
-    args = parser.parse_args()
+    args = parser.parse_args(command)
+
+    if args.filter_amr:
+        if not args.amr:
+            parser.error('--filter-amr argument requires --amr flag')
+        for item in args.filter_amr:
+            if ':' not in item[1:-1]:
+                parser.error('Each element in --filter-amr list must be in the form CLASS:SUBCLASS')
+    
     return args
 

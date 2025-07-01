@@ -1,9 +1,54 @@
+import argparse
+import io
 import unittest
 
 import pandas as pd
 
+from unittest.mock import patch
+
+from ncbi_cluster_tracker import cli
 from ncbi_cluster_tracker import report
 from ncbi_cluster_tracker import query
+
+class TestCli(unittest.TestCase):
+    def test_filter_amr_with_amr(self):
+        with self.assertRaises(SystemExit) as m:
+            with patch('sys.stderr', new=io.StringIO()) as mock_stderr:
+                cli.parse_args(['--filter-amr', 'BETA-LACTAM:CARBAPENEM', 'foo'])
+        error = mock_stderr.getvalue()
+        self.assertIn('--filter-amr argument requires --amr flag', error) 
+
+    def test_filter_amr_format(self):
+        with self.assertRaises(SystemExit) as m:
+            with patch('sys.stderr', new=io.StringIO()) as mock_stderr:
+                test = ['--amr', '--filter-amr', 'BETA-LACTAM:CARBAPENEM,foo', 'foo']
+                cli.parse_args(test)
+        error = mock_stderr.getvalue()
+        self.assertIn('Each element in --filter-amr list must be in the form CLASS:SUBCLASS', error)
+
+class TestAmr(unittest.TestCase):
+    def test_filter_amr_df(self):
+        df = pd.DataFrame(
+            [
+                ['1', 'FOO', 'EGGS'],
+                ['2', 'FOO/BAR', 'EGGS'],
+                ['3', 'FOO', 'EGGS/SPAM'],
+                ['4', 'FOO', 'SPAM'],
+                ['5', 'BAZ', 'EGGS'],
+            ],
+            columns=['id', 'class', 'subclass'],
+        )
+        filters = ['foo:eggs', 'baz:spam']
+        actual_df = query.filter_amr_df(df, filters)
+        expected_df = pd.DataFrame(
+            [
+                ['1', 'FOO', 'EGGS'],
+                ['2', 'FOO/BAR', 'EGGS'],
+                ['3', 'FOO', 'EGGS/SPAM'],
+            ],
+            columns=['id', 'class', 'subclass']
+        )
+        pd.testing.assert_frame_equal(actual_df, expected_df)
 
 class testCompareCounts(unittest.TestCase):
     COMPARE_COLS = ['cluster', 'cluster_base', 'internal_count', 'external_count', 'change']

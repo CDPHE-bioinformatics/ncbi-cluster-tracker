@@ -223,12 +223,27 @@ def create_amr_df(
     amr_ref_df: pd.DataFrame
 ) -> pd.DataFrame:
 
-    amr_df = isolates_df.copy()[['isolate_id', 'amr_genotypes']]
+    amr_df = isolates_df.copy()[['isolate_id', 'biosample', 'amr_genotypes']]
     amr_df['amr_genotype'] = amr_df['amr_genotypes'].str.split(',')
     amr_df = amr_df.explode('amr_genotype')
     amr_df['element'] = amr_df['amr_genotype'].str.split('=').str[0]
     amr_df['method'] = amr_df['amr_genotype'].str.split('=').str[1]
-    amr_df = amr_df[['isolate_id', 'biosample', 'element', 'method']]
     amr_df = amr_df.merge(amr_ref_df, how='left', on=['element'])
-    print(amr_df)
+    amr_df = amr_df[['isolate_id', 'biosample', 'element', 'method', 'product_name', 'class', 'subclass']]
     return amr_df
+
+
+def filter_amr_df(amr_df: pd.DataFrame, filters: list[str]) -> pd.DataFrame:
+    filtered_dfs = []
+    for filter in filters:
+        item = filter.split(':')
+        _class = item[0].upper()
+        subclass = item[1].upper()
+        filtered_df = amr_df[
+            (amr_df['class'].str.contains(_class))
+            & (amr_df['subclass'].str.contains(subclass))
+        ]
+        filtered_dfs.append(filtered_df)
+    concat_df = pd.concat(filtered_dfs)
+    filtered_df = concat_df.drop_duplicates()
+    return filtered_df
