@@ -756,13 +756,22 @@ def write_final_report(
     ]
 
     if amr_df is not None:
+        amr_blocks = []
+        if 'filtered_amr' in metadata:
+            args = command.split(' ')  
+            for i in range(len(args)):
+                if args[i] == '--filter-amr':
+                    filters = args[i + 1]
+            filtered_message = ar.Text(f'Table filtered to only show the following CLASS:SUBCLASS pairs: {filters}')
+            amr_blocks.append(filtered_message)
         amr_table = ar.DataTable(
             amr_df
             .sort_values('biosample', ascending=False)
             .reset_index()
             .drop(columns='index')
         )
-        amr_page = ar.Page(blocks=[amr_table], title='AMR')
+        amr_blocks.append(amr_table)
+        amr_page = ar.Page(blocks=amr_blocks, title='AMR')
         report_blocks.append(amr_page)
 
     report = ar.Blocks(blocks=report_blocks)
