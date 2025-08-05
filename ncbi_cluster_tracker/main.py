@@ -29,22 +29,21 @@ def main() -> None:
     biosamples = sample_sheet_df.index.to_list()
 
     out_dir = 'outputs' if args.out_dir is None else args.out_dir
-    compare_dir, latest_dir = find_existing_dirs(args, out_dir)
     
-    if compare_dir is None or args.no_compare:
+    if args.compare_dir is None:
         old_clusters_df = None
         old_isolates_df = None
     else:
-        old_clusters_glob = glob.glob(os.path.join(compare_dir, '*clusters*.csv'))
-        old_isolates_glob = glob.glob(os.path.join(compare_dir, '*isolates*.csv'))
+        old_clusters_glob = glob.glob(os.path.join(args.compare_dir, '*clusters*.csv'))
+        old_isolates_glob = glob.glob(os.path.join(args.compare_dir, '*isolates*.csv'))
         if not old_clusters_glob:
-            raise FileNotFoundError(f'Could not find clusters CSV file in {compare_dir}')
+            raise FileNotFoundError(f'Could not find clusters CSV file in {args.compare_dir}')
         if len(old_clusters_glob) > 1:
-            raise ValueError(f'Multiple clusters CSV files found in {compare_dir}')
+            raise ValueError(f'Multiple clusters CSV files found in {args.compare_dir}')
         if not old_isolates_glob:
-            raise FileNotFoundError(f'Could not find isolates CSV file in {compare_dir}')
+            raise FileNotFoundError(f'Could not find isolates CSV file in {args.compare_dir}')
         if len(old_isolates_glob) > 1:
-            raise ValueError(f'Multiple isolates CSV files found in {compare_dir}')
+            raise ValueError(f'Multiple isolates CSV files found in {args.compare_dir}')
         old_clusters_df = pd.read_csv(old_clusters_glob[0])
         old_isolates_df = pd.read_csv(old_isolates_glob[0])
 
@@ -58,10 +57,10 @@ def main() -> None:
             isolates_df, clusters_df = get_clusters(biosamples, 'bigquery')
         download.download_cluster_files(clusters_df, args.keep_snp_files)
     else:
-        if latest_dir is None:
-            raise FileNotFoundError(f'Could not find existing data at output directory {out_dir} for --retry')
-        os.environ['NCT_OUT_SUBDIR'] = latest_dir
-        os.environ['NCT_NOW'] = os.path.basename(os.environ['NCT_OUT_SUBDIR'])
+        if not os.path.isdir(out_dir):
+            raise FileNotFoundError(f'Could not find existing output directory {out_dir} for --retry')
+        os.environ['NCT_OUT_SUBDIR'] = out_dir
+        os.environ['NCT_NOW'] = os.path.basename(out_dir.rstrip(os.sep))
         logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
         isolates_df, clusters_df = get_clusters(biosamples, 'local')
     
@@ -85,35 +84,9 @@ def main() -> None:
         clusters,
         metadata,
         amr_df,
-        compare_dir,
+        args.compare_dir,
         command,
     )
-
-def find_existing_dirs(args: argparse.Namespace, out_dir: str) -> tuple[str, list[str]]:
-    """
-    Return sub-directory `compare_dir` to compare results (if any) and the 
-    directory with most recent timestamp inside `out_dir`.
-    """
-    dirs = glob.glob(os.path.join(out_dir, '*'))
-    valid_dirs = [d for d in dirs if re.search(r'\d{8}_\d{6}', d)]
-
-    compare_dir = args.compare_dir
-    if compare_dir is None and not args.no_compare:
-        try:
-            latest_dirs = sorted(valid_dirs)
-            if args.retry:
-                compare_dir = latest_dirs[-2]
-            else:
-                compare_dir = latest_dirs[-1]
-            logger.info(f'Comparing to {compare_dir}')
-        except (IndexError, ValueError):
-            logger.info('No comparison directory found.')
-            compare_dir = None
-    elif compare_dir is not None and not os.path.isdir(compare_dir):
-        raise ValueError(f'Directory "{compare_dir}" does not exist.')
-    if not valid_dirs:
-        return compare_dir, None
-    return compare_dir, max(valid_dirs)
 
 
 def get_clusters(
@@ -146,8 +119,12 @@ def get_clusters(
         clusters_df = query.query_clusters(biosamples)
         isolates_df.to_csv(isolates_csv, index=False)
     elif data_location == 'local':
-        isolates_df = pd.read_csv(isolates_csv)
-        clusters_df = pd.read_csv(clusters_csv)
+        try:
+            isolates_df = pd.read_csv(isolates_csv)
+            clusters_df = pd.read_csv(clusters_csv)
+        except FileNotFoundError as e:
+            message = f'Existing isolates/clusters CSV not found in {os.environ["NCT_OUT_SUBDIR"]}'
+            raise Exception(message) from e
     else:
         if data_location.endswith('.tsv'):
             browser_df = pd.read_csv(data_location, sep='\t', low_memory=False, on_bad_lines='warn')

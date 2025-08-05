@@ -17,7 +17,7 @@ def parse_args(command) -> argparse.Namespace:
     )
     parser.add_argument(
         '--retry',
-        help='Do not query BigQuery or NCBI, assumes data has already been downloaded to --out-dir or directory with most recent timestamp.',
+        help='Do not query BigQuery or NCBI, assumes data has already been downloaded to --out-dir.',
         action=argparse.BooleanOptionalAction,
     )
     parser.add_argument(
@@ -42,21 +42,19 @@ def parse_args(command) -> argparse.Namespace:
     )
     parser.add_argument(
         '--version', '-v',
-        help='Print the version of ncbi_cluster_tracker and exit.',
+        help='Print the version of ncbi-cluster-tracker and exit.',
         action='version',
         version=version('ncbi-cluster-tracker'),
     )
     mutex_group_compare = parser.add_mutually_exclusive_group()
     mutex_group_compare.add_argument(
         '--compare-dir',
-        help='Path to previous output directory to detect and report new isolates. Defaults to directory inside --out-dir with most recent timestamp if not specified.',
-    )
-    mutex_group_compare.add_argument(
-        '--no-compare',
-        help='Do not compare to most recent output directory, all clusters and isolates will be considered "new".',
-        action='store_true',
+        help='Path to previous output directory to detect and report new isolates.',
     )
     args = parser.parse_args(command)
+
+    if args.retry and not args.out_dir:
+        parser.error('--retry flag requires --out_dir argument')
 
     if args.filter_amr:
         if not args.amr:
