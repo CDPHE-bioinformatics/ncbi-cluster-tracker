@@ -708,7 +708,10 @@ def write_final_report(
         isolate_page_blocks.append(header_2)
 
     clusters_table = ar.DataTable(
-        clusters_df.sort_values('latest_added', ascending=False).reset_index().drop(columns='index')
+        clusters_df
+            .sort_values(['change', 'latest_added'], ascending=[False, False])
+            .reset_index()
+            .drop(columns='index')
     )
     previous_max_date = (
         pd.to_datetime(old_clusters_df['latest_added'].max()) if old_clusters_df is not None else None
