@@ -3,9 +3,12 @@
 **ncbi-cluster-tracker** is a tool for creating static, shareable HTML reports for tracking SNP clusters within the [NCBI Pathogen Detection](https://www.ncbi.nlm.nih.gov/pathogens/) system. Given an input sample sheet CSV containing BioSample IDs for isolates of interest (referred to as "internal isolates"), the tool creates a report with a high-level overview of all of the clusters associated with the internal isolates. For each cluster the output report links to the corresponding NCBI Pathogen Detection tree and displays additional visualizations such as a pairwise SNP distance matrix. Any additional metadata or alternate IDs provided in the sample sheet are used to further annotate the internal isolates within the report. If provided a directory to previous outputs, ncbi-cluster-tracker will compare to the previous report and indicate any new isolates, new clusters, and changes to isolate counts for existing clusters.
 
 ### Clusters tab
-The Clusters tab contains a table of clusters and their associated isolate counts and any changes to isolate counts from the previous report. Columns in the table can be sorted and filtered. A timeline chart is displayed below the table showing when each isolate was added to each cluster. Details about a particular isolate can be viewed by hovering over a point.
+The Clusters tab contains a table of clusters and their associated isolate counts and any changes to isolate counts from the previous report. Columns in the table can be sorted and filtered. 
 
 ![Clusters tab](assets/clusters.png)
+
+A timeline chart is displayed below the table showing when each isolate was added to each cluster. Details about a particular isolate can be viewed by hovering over a datapoint.
+![Cluster timelines](assets/timelines.png)
 
 ### Isolates tab
 The Isolates tab contains a table with details about the internal and external isolates, such as which cluster (if any) they belong to, whether they are new, their BioSample metadata, and any custom metadata provided in the sample sheet. SQL can be used directly in the report to query this table and the Clusters table.
@@ -47,26 +50,40 @@ gcloud auth login
 
 ```
 $ ncbi-cluster-tracker --help
-usage: ncbi-cluster-tracker [-h] [--out-dir OUT_DIR] [--retry | --no-retry] [--browser-file BROWSER_FILE] [--keep-snp-files] [--amr] [--filter-amr FILTER_AMR] [--version] [--compare-dir COMPARE_DIR]
+usage: ncbi-cluster-tracker [-h] [--out-dir OUT_DIR] [--retry | --no-retry]
+                            [--browser-file BROWSER_FILE] [--keep-snp-files] [--amr]
+                            [--filter-amr FILTER_AMR] [--version]
+                            [--compare-dir COMPARE_DIR]
                             sample_sheet
 
 positional arguments:
-  sample_sheet          Path to sample sheet CSV with required "biosample" column and any additional metadata columns. Use "id" column for alternate isolate IDs.
+  sample_sheet          Path to sample sheet CSV with required "biosample" column and
+                        any additional metadata columns. Use "id" column for alternate
+                        isolate IDs.
 
 options:
   -h, --help            show this help message and exit
   --out-dir OUT_DIR, -o OUT_DIR
-                        Path to directory to store outputs. Defaults to "./outputs/" if not specified.
-  --retry, --no-retry   Do not query BigQuery or NCBI, assumes data has already been downloaded to --out-dir.
+                        Path to directory to store outputs. Defaults to "./outputs/" if
+                        not specified.
+  --retry, --no-retry   Do not query BigQuery or NCBI, assumes data has already been
+                        downloaded to --out-dir.
   --browser-file BROWSER_FILE
-                        Path to isolates TSV or CSV downloaded from the Pathogen Detection Isolates Browser with information for all internal and external isolates. When specified, data in file will
-                        be used instead of querying the BigQuery dataset.
-  --keep-snp-files      Keep downloaded SNP and tree files in the output directory. By default, files are deleted after processing.
-  --amr                 Include AMR tab in report with antimicrobial resistance genes detected by AMRFinderPlus.
+                        Path to isolates TSV or CSV downloaded from the Pathogen
+                        Detection Isolates Browser with information for all internal and
+                        external isolates. When specified, data in file will be used
+                        instead of querying the BigQuery dataset.
+  --keep-snp-files      Keep downloaded SNP and tree files in the output directory. By
+                        default, files are deleted after processing.
+  --amr                 Include AMR tab in report with antimicrobial resistance genes
+                        detected by AMRFinderPlus.
   --filter-amr FILTER_AMR
-                        Only include AMR genes in provided comma-separated list of CLASS:SUBCLASS pairs in the AMR tab. Also adds filtered_amr column to Isolates and Cluster details tab and matching
-                        genes to tree labels
+                        Only include AMR genes in provided comma-separated list of
+                        CLASS:SUBCLASS pairs in the AMR tab. Also adds filtered_amr
+                        column to Isolates and Cluster details tab and matching genes to
+                        tree labels
   --version, -v         Print the version of ncbi-cluster-tracker and exit.
   --compare-dir COMPARE_DIR
-                        Path to previous output directory to detect and report new isolates.
+                        Path to previous output directory to detect and report new
+                        isolates.
 ```
