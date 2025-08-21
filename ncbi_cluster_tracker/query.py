@@ -1,7 +1,8 @@
 import pandas as pd
 
-from google.cloud import bigquery
+from typing import Any
 
+from google.cloud import bigquery
 
 def query_set_of_clusters(biosamples: list[str]) -> list[str]:
     biosamples_str = python_list_to_sql_str(biosamples)
@@ -30,8 +31,11 @@ def query_isolates(clusters: list[str], biosamples: list[str]) -> pd.DataFrame:
         creation_date,
         taxgroup_name,
         scientific_name,
-        bioproject_acc
+        bioproject_acc,
+        STRING_AGG(a.element, ",") AS amr_genotypes_elements,
+        STRING_AGG(a.method, ",") AS amr_genotypes_methods
     FROM `ncbi-pathogen-detect.pdbrowser.isolates`
+    LEFT JOIN UNNEST(AMR_genotypes) AS a
     WHERE erd_group IN ({clusters_str})
     OR biosample_acc IN ({biosamples_str}) 
     GROUP BY
@@ -51,6 +55,20 @@ def query_isolates(clusters: list[str], biosamples: list[str]) -> pd.DataFrame:
     '''
     df = execute_query(query)
     df['collection_date'] = df['collection_date'].astype('string')
+    
+    def interleave_amr_fields(row: pd.Series) -> str:
+        result = ''
+        if row['amr_genotypes_elements'] is None:
+            return result
+        elements = row['amr_genotypes_elements'].split(',')
+        methods = row['amr_genotypes_methods'].split(',')
+        for element, method in zip(elements, methods):
+            result += f'{element}={method},'
+        result = result.rstrip(',')
+        return result
+
+    df['amr_genotypes'] = df.apply(interleave_amr_fields, axis=1)
+    df = df.drop(['amr_genotypes_elements', 'amr_genotypes_methods'], axis=1)
     return df
 
 
@@ -125,11 +143,16 @@ def isolates_df_from_browser_df(
         'Create date': 'creation_date',
         '#Organism group': 'taxgroup_name',
         'Scientific name': 'scientific_name',
-        'BioProject': 'bioproject_acc'
+        'BioProject': 'bioproject_acc',
+        'AMR genotypes': 'amr_genotypes',
     }
+    missing_cols = [k for k in rename_cols if k not in browser_df.columns]
+    if missing_cols:
+        raise ValueError(
+            f'Required columns {missing_cols} missing in browser file'
+        )
     df = browser_df[rename_cols.keys()].rename(columns=rename_cols)
     df['collection_date'] = df['collection_date'].astype('string')
-    df.to_csv('test_out.csv', index=False)
     return df 
 
 def cluster_df_from_isolates_df(
@@ -196,3 +219,34 @@ def cluster_df_from_isolates_df(
             'latest_year_collected': 'string',
         })
     return df
+
+
+def create_amr_df(
+    isolates_df: pd.DataFrame,
+    amr_ref_df: pd.DataFrame
+) -> pd.DataFrame:
+
+    amr_df = isolates_df.copy()[['isolate_id', 'biosample', 'amr_genotypes']]
+    amr_df['amr_genotype'] = amr_df['amr_genotypes'].str.split(',')
+    amr_df = amr_df.explode('amr_genotype')
+    amr_df['element'] = amr_df['amr_genotype'].str.split('=').str[0]
+    amr_df['method'] = amr_df['amr_genotype'].str.split('=').str[1]
+    amr_df = amr_df.merge(amr_ref_df, how='left', on=['element'])
+    amr_df = amr_df[['isolate_id', 'biosample', 'element', 'method', 'product_name', 'class', 'subclass']]
+    return amr_df
+
+
+def filter_amr_df(amr_df: pd.DataFrame, filters: list[str]) -> pd.DataFrame:
+    filtered_dfs = []
+    for filter in filters:
+        item = filter.split(':')
+        _class = item[0].upper()
+        subclass = item[1].upper()
+        filtered_df = amr_df[
+            (amr_df['class'].str.contains(_class))
+            & (amr_df['subclass'].str.contains(subclass))
+        ]
+        filtered_dfs.append(filtered_df)
+    concat_df = pd.concat(filtered_dfs)
+    filtered_df = concat_df.drop_duplicates()
+    return filtered_df

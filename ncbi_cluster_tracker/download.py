@@ -1,8 +1,10 @@
+import io
 import os
 import re
 import requests
 import shutil
 
+import numpy as np
 import pandas as pd
 import tqdm
 
@@ -80,8 +82,8 @@ def build_tree_viewer_url(
     url += '/'
     url += taxgroup_to_kmer_group_acc[taxgroup_name]
     url += '/'
-    url += row['cluster']
-    return url 
+    url += str(row['cluster'])
+    return url
 
 
 def download_snps(urls: list[str], keep_files: bool) -> None:
@@ -105,7 +107,16 @@ def download_snps(urls: list[str], keep_files: bool) -> None:
                 f.write(response.content)
             shutil.unpack_archive(destination, out_subdir)
             out_files = os.listdir(out_subdir)
-            for f in out_files:
-                if not f.endswith('.newick') and not keep_files:
-                    os.remove(os.path.join(out_subdir, f))
+            for out_file in out_files:
+                if not out_file.endswith('.newick') and not keep_files:
+                    os.remove(os.path.join(out_subdir, out_file))
             
+
+def download_amr_reference_file() -> pd.DataFrame:
+    url = 'https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/ReferenceGeneCatalog.txt'
+    response = requests.get(url)
+    df = pd.read_csv(io.BytesIO(response.content), sep='\t')
+    df['element'] = np.where(df['allele'].notna(), df['allele'], df['gene_family'])
+    df = df[['element', 'product_name', 'class', 'subclass', 'hierarchy_node']]
+    df = df.drop_duplicates()
+    return df

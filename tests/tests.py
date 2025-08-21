@@ -1,9 +1,54 @@
+import argparse
+import io
 import unittest
 
 import pandas as pd
 
+from unittest.mock import patch
+
+from ncbi_cluster_tracker import cli
 from ncbi_cluster_tracker import report
 from ncbi_cluster_tracker import query
+
+class TestCli(unittest.TestCase):
+    def test_filter_amr_with_amr(self):
+        with self.assertRaises(SystemExit) as m:
+            with patch('sys.stderr', new=io.StringIO()) as mock_stderr:
+                cli.parse_args(['--filter-amr', 'BETA-LACTAM:CARBAPENEM', 'foo'])
+        error = mock_stderr.getvalue()
+        self.assertIn('--filter-amr argument requires --amr flag', error) 
+
+    def test_filter_amr_format(self):
+        with self.assertRaises(SystemExit) as m:
+            with patch('sys.stderr', new=io.StringIO()) as mock_stderr:
+                test = ['--amr', '--filter-amr', 'BETA-LACTAM:CARBAPENEM,foo', 'foo']
+                cli.parse_args(test)
+        error = mock_stderr.getvalue()
+        self.assertIn('Each element in --filter-amr list must be in the form CLASS:SUBCLASS', error)
+
+class TestAmr(unittest.TestCase):
+    def test_filter_amr_df(self):
+        df = pd.DataFrame(
+            [
+                ['1', 'FOO', 'EGGS'],
+                ['2', 'FOO/BAR', 'EGGS'],
+                ['3', 'FOO', 'EGGS/SPAM'],
+                ['4', 'FOO', 'SPAM'],
+                ['5', 'BAZ', 'EGGS'],
+            ],
+            columns=['id', 'class', 'subclass'],
+        )
+        filters = ['foo:eggs', 'baz:spam']
+        actual_df = query.filter_amr_df(df, filters)
+        expected_df = pd.DataFrame(
+            [
+                ['1', 'FOO', 'EGGS'],
+                ['2', 'FOO/BAR', 'EGGS'],
+                ['3', 'FOO', 'EGGS/SPAM'],
+            ],
+            columns=['id', 'class', 'subclass']
+        )
+        pd.testing.assert_frame_equal(actual_df, expected_df)
 
 class testCompareCounts(unittest.TestCase):
     COMPARE_COLS = ['cluster', 'cluster_base', 'internal_count', 'external_count', 'change']
@@ -68,14 +113,14 @@ class TestIsolatesDfFromBrowserDf(unittest.TestCase):
     COMPARE_COLS = ['isolate_id', 'biosample', 'target_acc', 'cluster',
                     'sra_id', 'isolation_source', 'geo_loc_name',
                     'collection_date', 'creation_date', 'taxgroup_name',
-                    'scientific_name', 'bioproject_acc']
+                    'scientific_name', 'bioproject_acc', 'amr_genotypes']
     
     def test_df_match_bigquery(self):
-        browser_df = pd.read_csv('tests/data/pdbrowser_20250415.tsv', sep='\t')
+        browser_df = pd.read_csv('tests/data/pdbrowser_20250618.tsv', sep='\t')
         actual_df = query.isolates_df_from_browser_df(browser_df)
         actual_df = actual_df.sort_values(by='target_acc').reset_index(drop=True)
         expected_df = pd.read_csv(
-            'tests/data/20250416_180514/isolates_20250416_180514.csv',
+            'tests/data/20250618_210234/isolates_20250618_210234.csv',
             dtype={'collection_date': 'string'},
         )
         expected_df = expected_df[self.COMPARE_COLS]
@@ -88,12 +133,12 @@ class TestClusterDfFromIsolatesDf(unittest.TestCase):
                     'earliest_added', 'latest_added', 'earliest_year_collected',
                     'latest_year_collected']
     def test_df_match_bigquery(self):
-        browser_df = pd.read_csv('tests/data/pdbrowser_20250415.tsv', sep='\t')
+        browser_df = pd.read_csv('tests/data/pdbrowser_20250618.tsv', sep='\t')
         isolates_df = query.isolates_df_from_browser_df(browser_df)
         actual_df = query.cluster_df_from_isolates_df(isolates_df)
         actual_df = actual_df.sort_values(by='cluster').reset_index(drop=True)
         expected_df = pd.read_csv(
-            'tests/data/20250416_180514/clusters_20250416_180514.csv',
+            'tests/data/20250618_210234/clusters_20250618_210234.csv',
             dtype={
                 'earliest_year_collected': 'string',
                 'latest_year_collected': 'string',

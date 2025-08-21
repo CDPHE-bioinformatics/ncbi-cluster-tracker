@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import os
 
@@ -124,14 +125,14 @@ class ClusterReport:
         external = self.metadata.query('source == "external"').copy()
         external['label'] = external['biosample']
 
-        def apply_prefix(row):
+        def apply_prefix(row: pd.Series) -> str:
             if row.get('is_new') == 'yes':
                 if row.get('source') == 'internal':
                     return f'⭐🆕{row.label}'
                 return f'🆕{row.label}'
             elif row.get('source') == 'internal':
                 return f'⭐{row.label}'
-            return row.label
+            return str(row.label)
 
         combined = pd.concat([
             internal,
@@ -150,7 +151,10 @@ class ClusterReport:
         """
         Add columns with basic metadata to the distance matrix.
         """
-        matrix = (self.metadata_truncated[['target_acc', *self.PRIMARY_METADATA_COLS]]
+        columns = self.PRIMARY_METADATA_COLS.copy()
+        if 'filtered_amr' in self.metadata.columns:
+            columns.append('filtered_amr')
+        matrix = (self.metadata_truncated[['target_acc', *columns]]
             .set_index('target_acc')
             .merge(
                 matrix,
@@ -181,6 +185,9 @@ class ClusterReport:
         """
         Summarize internal and external isolate counts.
         """
+        internal_change: np.int64 | None
+        external_change: np.int64 | None
+        total_change: np.int64 | None
         internal_count = np.int64(self.clusters_df['internal_count'].iloc[0].item())
         external_count = np.int64(self.clusters_df['external_count'].iloc[0].item())
         total_count = internal_count + external_count
@@ -240,10 +247,10 @@ class ClusterReport:
                 internal_new = self.metadata.query(
                     'source == "internal" and is_new == "yes"'
                 )[['biosample', 'isolate_id']]
-            internal_new = internal_new.iloc[:, 0].str.cat(internal_new.iloc[:, 1], sep=' / ').tolist()
+            internal_news = internal_new.iloc[:, 0].str.cat(internal_new.iloc[:, 1], sep=' / ').tolist()
             internal_list = 'New internal isolates added:\n'
-            internal_list = f"{internal_list} - {'\n - '.join(internal_new[:MAX_DISPLAY])}"
-            if len(internal_new) > MAX_DISPLAY:
+            internal_list = f"{internal_list} - {'\n - '.join(internal_news[:MAX_DISPLAY])}"
+            if len(internal_news) > MAX_DISPLAY:
                 internal_list = f'{internal_list}\nand {internal_change - MAX_DISPLAY} mor.'
         else:
             internal_list = 'No change in internal isolate count.'
@@ -252,15 +259,15 @@ class ClusterReport:
             external_new = self.metadata.query(
                 'source == "external" and is_new == "yes"'
             )[['biosample', 'isolate_id']]
-            external_new = external_new.iloc[:, 0].str.cat(external_new.iloc[:, 1], sep=' / ').tolist()
+            external_news = external_new.iloc[:, 0].str.cat(external_new.iloc[:, 1], sep=' / ').tolist()
             external_list = 'New external isolates added:\n'
-            external_list = f"{external_list} - {'\n - '.join(external_new[:MAX_DISPLAY])}\n"
-            if len(external_new) > MAX_DISPLAY:
+            external_list = f"{external_list} - {'\n - '.join(external_news[:MAX_DISPLAY])}\n"
+            if len(external_news) > MAX_DISPLAY:
                 external_list = f'{external_list}- and {external_change - MAX_DISPLAY} more'
         else:
             external_list = 'No change in external isolate count.'
 
-        count_blocks = ar.Group(
+        count_blocks: tuple[ar.Group, ar.Text | None] = ar.Group(
             blocks=[
                 *warning_message,
                 ar.Group(
@@ -315,6 +322,8 @@ class ClusterReport:
         cols = self.PRIMARY_METADATA_COLS.copy()
         if 'id' in self.metadata.columns:
             cols.insert(0, 'id')
+        if 'filtered_amr' in self.metadata.columns:
+            cols.append('filtered_amr')
 
         # prefix label with star to avoid collision with Pathogen Detection
         star_cols = {k: f'*{k}' for k in cols}
@@ -350,23 +359,26 @@ class ClusterReport:
         ]['tree_url'].item()
         browser_link_base = 'https://www.ncbi.nlm.nih.gov/pathogens/isolates/#'
 
-        # Modify URL so that internal isolates are highlighted red
-        tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
+        # Modify URL so that internal isolates are selected red
+        new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
+        if new_internals:
+            tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}&accessions2={','.join(new_internals)}'
+        else:
+            tree_url_all_internal = f'{tree_url}?accessions={','.join(self.cluster.internal_isolates)}'
         backup_link_all_internal = f'{browser_link_base}{'%20'.join(self.cluster.internal_isolates)}'
         tree_links = (
             f'Links to tree:\n\n' \
-            f'- [Highlight all internal isolates]({tree_url_all_internal}) ([Backup link]({backup_link_all_internal}))\n'
+            f'- [Select all internal isolates (bold new internal)]({tree_url_all_internal}) ([Backup link]({backup_link_all_internal}))\n'
         )
-        new_internals = self.metadata.query('source == "internal" and is_new == "yes"')['target_acc'].tolist()
         if new_internals:
-            tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}'
+            tree_url_new_internal = f'{tree_url}?accessions={','.join(new_internals)}&accessions2={','.join(self.cluster.internal_isolates)}'
             backup_link_new_internal = f'{browser_link_base}{'%20'.join(new_internals)}'
-            tree_links = f'{tree_links}- [Highlight new internal isolates]({tree_url_new_internal}) ([Backup link]({backup_link_new_internal}))\n'
+            tree_links = f'{tree_links}- [Select new internal isolates (bold all internal)]({tree_url_new_internal}) ([Backup link]({backup_link_new_internal}))\n'
         new_all = self.metadata.query('is_new == "yes"')['target_acc'].tolist()
         if new_all:
-            tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}'
+            tree_url_new_all = f'{tree_url}?accessions={','.join(new_all)}&accessions2={','.join(self.cluster.internal_isolates)}'
             backup_link_new_internal = f'{browser_link_base}{"%20".join(new_all)}'
-            tree_links = f'{tree_links}- [Highlight all new isolates]({tree_url_new_all}) ([Backup link]({backup_link_new_internal}))\n'
+            tree_links = f'{tree_links}- [Select all new isolates (bold all internal)]({tree_url_new_all}) ([Backup link]({backup_link_new_internal}))\n'
         cluster_base = self.cluster.name.split('.')[0]
         tree_links_block = ar.Text(tree_links)
 
@@ -406,6 +418,7 @@ class ClusterReport:
         )
         return report
 
+
 def mark_new_isolates(
     isolates_df: pd.DataFrame,
     old_isolates_df: pd.DataFrame | None,
@@ -423,9 +436,12 @@ def mark_new_isolates(
     )
     return isolates_df
 
+
 def combine_metadata(
     sample_sheet_df: pd.DataFrame,
-    isolates_df: pd.DataFrame
+    isolates_df: pd.DataFrame,
+    amr_df: pd.DataFrame | None,
+    args: argparse.Namespace,
 ) -> pd.DataFrame:
     """
     Combine user-provided data in sample sheet with sample metadata
@@ -456,6 +472,15 @@ def combine_metadata(
         'both': 'internal',
     })
     optional_id = ['id'] if 'id' in metadata.columns else []
+
+    filtered_amr_col = []
+    if amr_df is not None and args.filter_amr:
+        reduced_df = amr_df[['biosample', 'element']]
+        reduced_df = reduced_df.groupby('biosample')['element'].agg(','.join).reset_index()
+        reduced_df = reduced_df.rename(columns={'element': 'filtered_amr'})
+        metadata = pd.merge(metadata, reduced_df, how='left', on='biosample')
+        filtered_amr_col = ['filtered_amr']
+
     column_order = [
         'biosample',
         *optional_id,
@@ -472,6 +497,7 @@ def combine_metadata(
         'bioproject_acc',
         'target_acc',
         'sra_id',
+        *filtered_amr_col,
     ]
     extra_internal_cols = [c for c in metadata.columns if c not in column_order]
     extra_internal_cols.sort()
@@ -551,7 +577,7 @@ def compare_counts(
     compare_df['internal_change'] = compare_df['internal_count_new'] - compare_df['internal_count_old']
     compare_df['external_change'] = compare_df['external_count_new'] - compare_df['external_count_old']
 
-    def create_change_column(row):
+    def create_change_column(row: pd.Series) -> str:
         if pd.isna(row['internal_change']) or pd.isna(row['external_change']):
             return 'new cluster'
         internal_prefix = '+' if row['internal_change'] >= 0 else ''
@@ -577,7 +603,7 @@ def compare_counts(
 
 def create_clusters_timeline_plot(
     metadata: pd.DataFrame,
-    previous_max_date: datetime.date | None
+    previous_max_date: datetime.datetime | None
 ) -> ar.Plot:
     """
     Create plot showing when each isolate was added to each cluster. Add
@@ -636,7 +662,7 @@ def write_final_report(
      old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
-     sample_sheet: str,
+     amr_df: pd.DataFrame | None,
      compare_dir: str | None,
      command: str
 ) -> None:
@@ -682,7 +708,10 @@ def write_final_report(
         isolate_page_blocks.append(header_2)
 
     clusters_table = ar.DataTable(
-        clusters_df.sort_values('latest_added', ascending=False).reset_index().drop(columns='index')
+        clusters_df
+            .sort_values(['change', 'latest_added'], ascending=[False, False])
+            .reset_index()
+            .drop(columns='index')
     )
     previous_max_date = (
         pd.to_datetime(old_clusters_df['latest_added'].max()) if old_clusters_df is not None else None
@@ -724,14 +753,36 @@ def write_final_report(
 
     cluster_report_blocks = [r.report for r in cluster_reports]
     cluster_report_blocks.sort(key=lambda r: r.label, reverse=True)
-    report = ar.Blocks(
+
+    report_blocks = [
         ar.Page(blocks=cluster_page_blocks, title='Clusters'),
-        ar.Page(blocks=isolate_page_blocks, title='Isolates'),
         ar.Page(
             ar.Select(blocks=cluster_report_blocks, type=ar.SelectType.DROPDOWN),
             title='Cluster details',
+        ),
+        ar.Page(blocks=isolate_page_blocks, title='Isolates'),
+    ]
+
+    if amr_df is not None:
+        amr_blocks = []
+        if 'filtered_amr' in metadata:
+            args = command.split(' ')  
+            for i in range(len(args)):
+                if args[i] == '--filter-amr':
+                    filters = args[i + 1]
+            filtered_message = ar.Text(f'Table filtered to only show the following CLASS:SUBCLASS pairs: {filters}')
+            amr_blocks.append(filtered_message)
+        amr_table = ar.DataTable(
+            amr_df
+            .sort_values('biosample', ascending=False)
+            .reset_index()
+            .drop(columns='index')
         )
-    )
+        amr_blocks.append(amr_table)
+        amr_page = ar.Page(blocks=amr_blocks, title='AMR')
+        report_blocks.append(amr_page)
+
+    report = ar.Blocks(blocks=report_blocks)
 
     ar.save_report(
         report,
@@ -739,6 +790,5 @@ def write_final_report(
             os.environ['NCT_OUT_SUBDIR'],
             f'clusters_{os.environ['NCT_NOW']}.html'
         ),
-        standalone=True,
+        standalone=False,
     )
-

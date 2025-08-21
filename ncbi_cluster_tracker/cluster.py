@@ -61,6 +61,13 @@ class Cluster:
                         f'one internal isolate in the cluster.'
                     )
 
+                else:
+                    tree = None
+                    self.filtered_matrix_message = (
+                        f'SNP distance matrix not displayed since there are '
+                        f'more than {self.MAX_TREE_SIZE} isolates in the cluster.'
+                    )
+
             elif len(internal_taxa) == self.MAX_MATRIX_SIZE:
                 # filter down taxa to just input isolates
                 tree.retain_taxa(internal_taxa)
@@ -97,8 +104,8 @@ class Cluster:
                 tree = None
                 self.filtered_matrix = None
                 self.filtered_matrix_message = (
-                    'SNP distance matrix not displayed since there are over '
-                    'self.MAX_MATRIX_SIZE internal isolates in the cluster.'
+                    f'SNP distance matrix not displayed since there are over '
+                    f'{self.MAX_MATRIX_SIZE} internal isolates in the cluster.'
                 ) 
         if tree is not None:
             matrix = tree.phylogenetic_distance_matrix().as_data_table()
