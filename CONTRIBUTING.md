@@ -20,7 +20,7 @@ To create and publish a distributable package to PyPI, ensure the `version` unde
 
 ```
 poetry build
-poetry publish
+poetry publish --username __token__ --password <PyPI API Token>
 ```
 
 # Testing
