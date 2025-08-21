@@ -2,7 +2,9 @@ import argparse
 
 from importlib.metadata import version
 
-def parse_args(command) -> argparse.Namespace:
+from typing import Sequence
+
+def parse_args(command: Sequence[str]) -> argparse.Namespace:
     """
     Parse command-line arguments from the user.
     """

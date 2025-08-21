@@ -1,7 +1,8 @@
 import pandas as pd
 
-from google.cloud import bigquery
+from typing import Any
 
+from google.cloud import bigquery
 
 def query_set_of_clusters(biosamples: list[str]) -> list[str]:
     biosamples_str = python_list_to_sql_str(biosamples)
@@ -55,10 +56,12 @@ def query_isolates(clusters: list[str], biosamples: list[str]) -> pd.DataFrame:
     df = execute_query(query)
     df['collection_date'] = df['collection_date'].astype('string')
     
-    def interleave_amr_fields(row: str) -> str:
+    def interleave_amr_fields(row: pd.Series) -> str:
+        result = ''
+        if row['amr_genotypes_elements'] is None:
+            return result
         elements = row['amr_genotypes_elements'].split(',')
         methods = row['amr_genotypes_methods'].split(',')
-        result = ''
         for element, method in zip(elements, methods):
             result += f'{element}={method},'
         result = result.rstrip(',')

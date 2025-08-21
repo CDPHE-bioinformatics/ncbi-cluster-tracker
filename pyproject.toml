@@ -17,7 +17,10 @@ dependencies = [
     "requests (>=2.32.3,<3.0.0)",
     "google-cloud-bigquery[pandas] (>=3.31.0,<4.0.0)",
     "matplotlib (>=3.10.1,<4.0.0)",
-    "db-dtypes (>=1.4.2,<2.0.0)"
+    "db-dtypes (>=1.4.2,<2.0.0)",
+    "mypy (>=1.17.1,<2.0.0)",
+    "pandas-stubs (>=2.3.0.250703,<3.0.0.0)",
+    "types-tqdm (>=4.67.0.20250809,<5.0.0.0)"
 ]
 
 

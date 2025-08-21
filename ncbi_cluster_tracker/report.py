@@ -125,14 +125,14 @@ class ClusterReport:
         external = self.metadata.query('source == "external"').copy()
         external['label'] = external['biosample']
 
-        def apply_prefix(row):
+        def apply_prefix(row: pd.Series) -> str:
             if row.get('is_new') == 'yes':
                 if row.get('source') == 'internal':
                     return f'⭐🆕{row.label}'
                 return f'🆕{row.label}'
             elif row.get('source') == 'internal':
                 return f'⭐{row.label}'
-            return row.label
+            return str(row.label)
 
         combined = pd.concat([
             internal,
@@ -185,6 +185,9 @@ class ClusterReport:
         """
         Summarize internal and external isolate counts.
         """
+        internal_change: np.int64 | None
+        external_change: np.int64 | None
+        total_change: np.int64 | None
         internal_count = np.int64(self.clusters_df['internal_count'].iloc[0].item())
         external_count = np.int64(self.clusters_df['external_count'].iloc[0].item())
         total_count = internal_count + external_count
@@ -244,10 +247,10 @@ class ClusterReport:
                 internal_new = self.metadata.query(
                     'source == "internal" and is_new == "yes"'
                 )[['biosample', 'isolate_id']]
-            internal_new = internal_new.iloc[:, 0].str.cat(internal_new.iloc[:, 1], sep=' / ').tolist()
+            internal_news = internal_new.iloc[:, 0].str.cat(internal_new.iloc[:, 1], sep=' / ').tolist()
             internal_list = 'New internal isolates added:\n'
-            internal_list = f"{internal_list} - {'\n - '.join(internal_new[:MAX_DISPLAY])}"
-            if len(internal_new) > MAX_DISPLAY:
+            internal_list = f"{internal_list} - {'\n - '.join(internal_news[:MAX_DISPLAY])}"
+            if len(internal_news) > MAX_DISPLAY:
                 internal_list = f'{internal_list}\nand {internal_change - MAX_DISPLAY} mor.'
         else:
             internal_list = 'No change in internal isolate count.'
@@ -256,15 +259,15 @@ class ClusterReport:
             external_new = self.metadata.query(
                 'source == "external" and is_new == "yes"'
             )[['biosample', 'isolate_id']]
-            external_new = external_new.iloc[:, 0].str.cat(external_new.iloc[:, 1], sep=' / ').tolist()
+            external_news = external_new.iloc[:, 0].str.cat(external_new.iloc[:, 1], sep=' / ').tolist()
             external_list = 'New external isolates added:\n'
-            external_list = f"{external_list} - {'\n - '.join(external_new[:MAX_DISPLAY])}\n"
-            if len(external_new) > MAX_DISPLAY:
+            external_list = f"{external_list} - {'\n - '.join(external_news[:MAX_DISPLAY])}\n"
+            if len(external_news) > MAX_DISPLAY:
                 external_list = f'{external_list}- and {external_change - MAX_DISPLAY} more'
         else:
             external_list = 'No change in external isolate count.'
 
-        count_blocks = ar.Group(
+        count_blocks: tuple[ar.Group, ar.Text | None] = ar.Group(
             blocks=[
                 *warning_message,
                 ar.Group(
@@ -415,6 +418,7 @@ class ClusterReport:
         )
         return report
 
+
 def mark_new_isolates(
     isolates_df: pd.DataFrame,
     old_isolates_df: pd.DataFrame | None,
@@ -431,6 +435,7 @@ def mark_new_isolates(
         lambda x: 'yes' if x not in old_biosamples else 'no'
     )
     return isolates_df
+
 
 def combine_metadata(
     sample_sheet_df: pd.DataFrame,
@@ -572,7 +577,7 @@ def compare_counts(
     compare_df['internal_change'] = compare_df['internal_count_new'] - compare_df['internal_count_old']
     compare_df['external_change'] = compare_df['external_count_new'] - compare_df['external_count_old']
 
-    def create_change_column(row):
+    def create_change_column(row: pd.Series) -> str:
         if pd.isna(row['internal_change']) or pd.isna(row['external_change']):
             return 'new cluster'
         internal_prefix = '+' if row['internal_change'] >= 0 else ''
@@ -598,7 +603,7 @@ def compare_counts(
 
 def create_clusters_timeline_plot(
     metadata: pd.DataFrame,
-    previous_max_date: datetime.date | None
+    previous_max_date: datetime.datetime | None
 ) -> ar.Plot:
     """
     Create plot showing when each isolate was added to each cluster. Add
@@ -657,7 +662,7 @@ def write_final_report(
      old_clusters_df: pd.DataFrame | None,
      clusters: list[cluster.Cluster], 
      metadata: pd.DataFrame,
-     amr_df: pd.DataFrame,
+     amr_df: pd.DataFrame | None,
      compare_dir: str | None,
      command: str
 ) -> None:
@@ -784,4 +789,3 @@ def write_final_report(
         ),
         standalone=False,
     )
-
