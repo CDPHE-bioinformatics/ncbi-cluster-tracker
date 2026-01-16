@@ -29,6 +29,8 @@ def main() -> None:
         .set_index('biosample', verify_integrity=True)
     )
     biosamples = sample_sheet_df.index.to_list()
+    
+    validate_biosample_ids(biosamples)
 
     temp_dir = tempfile.mkdtemp(prefix='ncbi_cluster_tracker_labels_')
     os.environ['NCT_LABELS_TMPDIR'] = temp_dir
@@ -143,6 +145,25 @@ def get_clusters(
         isolates_df.to_csv(isolates_csv, index=False)
 
     return isolates_df, clusters_df
+
+def validate_biosample_ids(biosamples: list[str]) -> None:
+    """
+    Validate that all BioSample IDs match the expected format.
+    Raises ValueError if any invalid IDs are found.
+    """
+    biosample_pattern = re.compile(r'^SAM[NED][AG]?\d+$')
+    invalid_biosamples = []
+    
+    for biosample in biosamples:
+        if not biosample_pattern.match(biosample):
+            invalid_biosamples.append(biosample)
+    
+    if invalid_biosamples:
+        error_msg = (
+            f"Invalid BioSample ID(s) found in sample sheet:\n"
+            f"  {', '.join(repr(bs) for bs in invalid_biosamples)}\n\n"
+        )
+        raise ValueError(error_msg)
 
 
 if __name__ == '__main__':
