@@ -1,11 +1,13 @@
 
 import argparse
+import atexit
 import datetime
 import glob
 import os
 import re
 import shutil
 import sys
+import tempfile
 
 import arakawa as ar # type: ignore
 import pandas as pd
@@ -27,6 +29,10 @@ def main() -> None:
         .set_index('biosample', verify_integrity=True)
     )
     biosamples = sample_sheet_df.index.to_list()
+
+    temp_dir = tempfile.mkdtemp(prefix='ncbi_cluster_tracker_labels_')
+    os.environ['NCT_LABELS_TMPDIR'] = temp_dir
+    atexit.register(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
 
     out_dir = 'outputs' if args.out_dir is None else args.out_dir
     

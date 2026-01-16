@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import tempfile
 
 import arakawa as ar  # type: ignore
 import numpy as np
@@ -336,9 +337,8 @@ class ClusterReport:
                 value_vars=list(star_cols.values()),
             )
         )
-        subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'labels')
-        os.makedirs(subdir, exist_ok=True)
-        path = os.path.join(subdir, f'{self.cluster.name}_labels.txt')
+        temp_dir = os.environ.get('NCT_LABELS_TMPDIR', tempfile.gettempdir())
+        path = os.path.join(temp_dir, f'{self.cluster.name}_labels.txt')
         custom_labels.to_csv(path, sep='\t', index=False, header=False) 
         attachment = ar.Attachment(file=path)
         return attachment 
