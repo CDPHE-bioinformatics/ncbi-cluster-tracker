@@ -1,8 +1,0 @@
-PDT002039975.1	*id	lab_id_22
-PDT002077128.1	*id	lab_id_21
-PDT002039975.1	*isolate_id	2023CJ-00375
-PDT002077128.1	*isolate_id	2024CJ-00018
-PDT002039975.1	*collection_date	2023-12-27
-PDT002077128.1	*collection_date	2024-02-13
-PDT002039975.1	*geo_loc_name	USA
-PDT002077128.1	*geo_loc_name	USA
