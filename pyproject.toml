@@ -1,6 +1,6 @@
 [project]
 name = "ncbi-cluster-tracker"
-version = "0.2.0"
+version = "0.3.0"
 description = "Create standalone HTML reports for tracking SNP clusters within NCBI Pathogen Detection"
 authors = [
     {name = "Sam Baird",email = "sam.baird@state.co.us"}
