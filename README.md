@@ -35,6 +35,10 @@ There are two options to provide the required cluster metadata and isolate metad
 2. Alternatively, users can manually provide this data by downloading search results as a TSV or CSV file from the Pathogen Detection Isolates Browser website and passing the file into the program using `--browser-file`. To create this file, copy-and-paste the BioSample IDs from the sample sheet into the [Isolates Browser](https://www.ncbi.nlm.nih.gov/pathogens/) search bar and press Enter. Make sure all columns are displayed (select "Choose columns"), then click the "Download" button to export the Matched Isolates table as a CSV or TSV. This file will contain the isolate metadata for internal isolates and their associated clusters. To get the isolate metadata for external isolates in these clusters, a second search needs to be run. Copy the "SNP cluster" column from the downloaded file and paste into to the search bar along with the existing BioSample IDs from the previous search. Run the search again and download the second TSV or CSV as before, and pass the path to this file to ncbi-cluster-tracker with the `--browser-file` option.
 
 ## Installation
+### Google Colab
+This [Colab notebook](https://colab.research.google.com/github/CDPHE-bioinformatics/ncbi-cluster-tracker/blob/main/ncbi_cluster_tracker.ipynb) can be used to run the tool from your web browser.
+
+### Local installation
 1. Install as command-line program with `pip`. Requires Python version >=3.12.
 ```
 pip install ncbi-cluster-tracker
