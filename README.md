@@ -16,7 +16,7 @@ The Isolates tab contains a table with details about the internal and external i
 ![Isolates tab](assets/isolates.png)
 
 ### Cluster details tab
-The Cluster details tab displays information about each cluster. Clusters can be searched and selected in the dropdown menu. Each page displays the count (and change in count) of internal and external isolates in the cluster and links are provided to the SNP Tree Viewer in the NCBI Pathogen Detection website. A downloadable custom labels file is provided to annotate the tree in the SNP Tree viewer with any alternate sample IDs and other metadata.
+The Cluster details tab displays information about each cluster. Clusters can be searched and selected in the dropdown menu. Each page displays the count (and change in count) of internal and external isolates in the cluster and links are provided to the SNP Tree Viewer in the NCBI Pathogen Detection website. A downloadable custom labels file is provided to [annotate the tree](https://www.ncbi.nlm.nih.gov/pathogens/pathogens_help/#labels) in the SNP Tree viewer with any alternate sample IDs and other metadata.
 
 ![Cluster details overview](assets/cluster_details_overview.png)
 
