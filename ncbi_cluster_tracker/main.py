@@ -86,11 +86,13 @@ def main() -> None:
         shutil.rmtree(os.path.join(os.environ['NCT_OUT_SUBDIR'], 'snps'))
     isolates_df = report.mark_new_isolates(isolates_df, old_isolates_df)
     metadata = report.combine_metadata(sample_sheet_df, isolates_df, amr_df, args)
+    sample_sheet_metadata_cols = sample_sheet_df.columns.to_list()
     report.write_final_report(
         clusters_df,
         old_clusters_df,
         clusters,
         metadata,
+        sample_sheet_metadata_cols,
         amr_df,
         args.compare_dir,
         command,

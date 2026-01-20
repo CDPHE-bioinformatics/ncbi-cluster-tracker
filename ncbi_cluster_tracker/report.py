@@ -28,11 +28,13 @@ class ClusterReport:
         cluster: cluster.Cluster,
         metadata: pd.DataFrame,
         clusters_df: pd.DataFrame,
+        sample_sheet_metadata_cols: list[str] = []
     ):
 
         self.cluster = cluster
         self.clusters_df = clusters_df
         self.metadata = metadata
+        self.sample_sheet_metadata_cols = sample_sheet_metadata_cols
         self.metadata_truncated = self._truncate_metadata(metadata.copy()).fillna('')
         self.snp_matrix = self._create_snp_matrix()
         self.custom_labels = self._create_custom_labels()
@@ -334,6 +336,9 @@ class ClusterReport:
             cols.insert(0, 'id')
         if 'filtered_amr' in self.metadata.columns:
             cols.append('filtered_amr')
+        for sample_sheet_col in self.sample_sheet_metadata_cols:
+            if sample_sheet_col not in cols and sample_sheet_col != 'biosample':
+                cols.append(sample_sheet_col)
 
         # prefix label with star to avoid collision with Pathogen Detection
         star_cols = {k: f'*{k}' for k in cols}
@@ -521,7 +526,8 @@ def combine_metadata(
 def create_cluster_reports(
     clusters: list[cluster.Cluster],
     clusters_df: pd.DataFrame,
-    metadata: pd.DataFrame
+    metadata: pd.DataFrame,
+    sample_sheet_metadata_cols: list[str],
 ) -> list[ClusterReport]:
     """
     Create a ClusterReport for all clusters.
@@ -532,6 +538,7 @@ def create_cluster_reports(
             cluster,
             metadata[metadata['cluster'] == cluster.name],
             clusters_df[clusters_df['cluster'] == cluster.name],
+            sample_sheet_metadata_cols=sample_sheet_metadata_cols,
         )
         cluster_reports.append(cluster_report)
     return cluster_reports
@@ -672,13 +679,14 @@ def create_clusters_timeline_plot(
 
 
 def write_final_report(
-     clusters_df: pd.DataFrame,
-     old_clusters_df: pd.DataFrame | None,
-     clusters: list[cluster.Cluster], 
-     metadata: pd.DataFrame,
-     amr_df: pd.DataFrame | None,
-     compare_dir: str | None,
-     command: str
+    clusters_df: pd.DataFrame,
+    old_clusters_df: pd.DataFrame | None,
+    clusters: list[cluster.Cluster], 
+    metadata: pd.DataFrame,
+    sample_sheet_metadata_cols: list[str],
+    amr_df: pd.DataFrame | None,
+    compare_dir: str | None,
+    command: str
 ) -> None:
     """
     Output final, standalone HTML report with all tables and plots. This
@@ -690,7 +698,8 @@ def write_final_report(
     cluster_reports = create_cluster_reports(
         clusters,
         clusters_df,
-        metadata
+        metadata,
+        sample_sheet_metadata_cols,
     )
     keep_cols = [
         'cluster',
