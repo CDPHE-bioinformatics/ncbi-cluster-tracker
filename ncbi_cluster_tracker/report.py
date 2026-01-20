@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import tempfile
 
 import arakawa as ar  # type: ignore
 import numpy as np
@@ -27,11 +28,13 @@ class ClusterReport:
         cluster: cluster.Cluster,
         metadata: pd.DataFrame,
         clusters_df: pd.DataFrame,
+        sample_sheet_metadata_cols: list[str] = []
     ):
 
         self.cluster = cluster
         self.clusters_df = clusters_df
         self.metadata = metadata
+        self.sample_sheet_metadata_cols = sample_sheet_metadata_cols
         self.metadata_truncated = self._truncate_metadata(metadata.copy()).fillna('')
         self.snp_matrix = self._create_snp_matrix()
         self.custom_labels = self._create_custom_labels()
@@ -53,6 +56,12 @@ class ClusterReport:
         # Some isolates may be duplicated due to multiple assemblies, keep first
         matrix = matrix[~matrix.index.duplicated(keep='first')]
         matrix = matrix.loc[:, ~matrix.columns.duplicated(keep='first')]
+
+        if matrix.empty:
+            snp_matrix = ar.Group(
+                ar.Text('No SNP distance matrix data available.', name=self.cluster.name, label=self.cluster.name),
+            )
+            return snp_matrix
 
         style = (matrix
             .style
@@ -297,7 +306,7 @@ class ClusterReport:
         )
         return count_blocks
 
-    def _create_isolate_count_graph(self) -> ar.Plot:
+    def _create_isolate_count_graph(self) -> ar.Plot | ar.Text:
         """
         Histogram of isolate counts over creation date (similar to 'epi curve').
         """
@@ -305,6 +314,9 @@ class ClusterReport:
         # TODO: collection dates, date added, or both?
         # If isolate only has year or no collection date, use date_added,
         # otherwise, use the collection date?
+        if self.metadata.empty:
+            return ar.Text('No isolate data available for graph.')
+        
         count_graph = ar.Plot(
             px.histogram(
                 self.metadata,
@@ -324,6 +336,9 @@ class ClusterReport:
             cols.insert(0, 'id')
         if 'filtered_amr' in self.metadata.columns:
             cols.append('filtered_amr')
+        for sample_sheet_col in self.sample_sheet_metadata_cols:
+            if sample_sheet_col not in cols and sample_sheet_col != 'biosample':
+                cols.append(sample_sheet_col)
 
         # prefix label with star to avoid collision with Pathogen Detection
         star_cols = {k: f'*{k}' for k in cols}
@@ -336,9 +351,8 @@ class ClusterReport:
                 value_vars=list(star_cols.values()),
             )
         )
-        subdir = os.path.join(os.environ['NCT_OUT_SUBDIR'], 'labels')
-        os.makedirs(subdir, exist_ok=True)
-        path = os.path.join(subdir, f'{self.cluster.name}_labels.txt')
+        temp_dir = os.environ.get('NCT_LABELS_TMPDIR', tempfile.gettempdir())
+        path = os.path.join(temp_dir, f'{self.cluster.name}_labels.txt')
         custom_labels.to_csv(path, sep='\t', index=False, header=False) 
         attachment = ar.Attachment(file=path)
         return attachment 
@@ -386,12 +400,15 @@ class ClusterReport:
         count_graph_header = ar.HTML('<h3>Isolates by date added</h3>')
         count_graph = self._create_isolate_count_graph()
         table_header = ar.HTML('<h3>Isolate table</h3>')
-        table = ar.DataTable(
-            self.metadata
-            .sort_values(by=['source', 'creation_date'], ascending=[False, False])
-            .reset_index()
-            .drop(columns='index')
-        )
+        if self.metadata.empty:
+            table = ar.Text('No isolate data available.')
+        else:
+            table = ar.DataTable(
+                self.metadata
+                .sort_values(by=['source', 'creation_date'], ascending=[False, False])
+                .reset_index()
+                .drop(columns='index')
+            )
         if (
             self.clusters_df['change'].iloc[0] == 'new cluster'
             or not self.clusters_df['change'].iloc[0].startswith('+0')
@@ -509,7 +526,8 @@ def combine_metadata(
 def create_cluster_reports(
     clusters: list[cluster.Cluster],
     clusters_df: pd.DataFrame,
-    metadata: pd.DataFrame
+    metadata: pd.DataFrame,
+    sample_sheet_metadata_cols: list[str],
 ) -> list[ClusterReport]:
     """
     Create a ClusterReport for all clusters.
@@ -520,6 +538,7 @@ def create_cluster_reports(
             cluster,
             metadata[metadata['cluster'] == cluster.name],
             clusters_df[clusters_df['cluster'] == cluster.name],
+            sample_sheet_metadata_cols=sample_sheet_metadata_cols,
         )
         cluster_reports.append(cluster_report)
     return cluster_reports
@@ -604,7 +623,7 @@ def compare_counts(
 def create_clusters_timeline_plot(
     metadata: pd.DataFrame,
     previous_max_date: datetime.datetime | None
-) -> ar.Plot:
+) -> tuple[ar.Plot | ar.Text, str | None]:
     """
     Create plot showing when each isolate was added to each cluster. Add
     vertical red line to plot showing when the previous report's last
@@ -615,6 +634,8 @@ def create_clusters_timeline_plot(
     # px.strip() wasn't jittering points with datetime, so manually jittering
     metadata_jittered = metadata.copy()
     metadata_jittered = metadata_jittered[metadata_jittered['cluster'].notna()]
+    if metadata_jittered.empty:
+        return ar.Text('No cluster data available for timeline plot.'), None
     metadata_jittered = metadata_jittered.sort_values(by='creation_date', ascending=False)
     metadata_jittered['cluster_ticktext'] = (
         metadata_jittered['cluster'].str.cat(metadata_jittered['taxgroup_name'], sep='<br>')
@@ -658,13 +679,14 @@ def create_clusters_timeline_plot(
 
 
 def write_final_report(
-     clusters_df: pd.DataFrame,
-     old_clusters_df: pd.DataFrame | None,
-     clusters: list[cluster.Cluster], 
-     metadata: pd.DataFrame,
-     amr_df: pd.DataFrame | None,
-     compare_dir: str | None,
-     command: str
+    clusters_df: pd.DataFrame,
+    old_clusters_df: pd.DataFrame | None,
+    clusters: list[cluster.Cluster], 
+    metadata: pd.DataFrame,
+    sample_sheet_metadata_cols: list[str],
+    amr_df: pd.DataFrame | None,
+    compare_dir: str | None,
+    command: str
 ) -> None:
     """
     Output final, standalone HTML report with all tables and plots. This
@@ -676,7 +698,8 @@ def write_final_report(
     cluster_reports = create_cluster_reports(
         clusters,
         clusters_df,
-        metadata
+        metadata,
+        sample_sheet_metadata_cols,
     )
     keep_cols = [
         'cluster',
@@ -707,12 +730,15 @@ def write_final_report(
         cluster_page_blocks.append(header_2)
         isolate_page_blocks.append(header_2)
 
-    clusters_table = ar.DataTable(
-        clusters_df
-            .sort_values(['change', 'latest_added'], ascending=[False, False])
-            .reset_index()
-            .drop(columns='index')
-    )
+    if clusters_df.empty:
+        clusters_table = ar.Text('No cluster data available.')
+    else:
+        clusters_table = ar.DataTable(
+            clusters_df
+                .sort_values(['change', 'latest_added'], ascending=[False, False])
+                .reset_index()
+                .drop(columns='index')
+        )
     previous_max_date = (
         pd.to_datetime(old_clusters_df['latest_added'].max()) if old_clusters_df is not None else None
     )
@@ -728,12 +754,15 @@ def write_final_report(
         cluster_page_blocks.append(clusters_timeline_message)
     cluster_page_blocks.append(clusters_timeline_plot)
 
-    isolates_table = ar.DataTable(
-        metadata
-        .sort_values(by=['source', 'creation_date'], ascending=[False, False])
-        .reset_index()
-        .drop(columns='index')
-    )
+    if metadata.empty:
+        isolates_table = ar.Text('No isolate data available.')
+    else:
+        isolates_table = ar.DataTable(
+            metadata
+            .sort_values(by=['source', 'creation_date'], ascending=[False, False])
+            .reset_index()
+            .drop(columns='index')
+        )
     isolate_page_blocks.append(isolates_table)
     missing_isolates = metadata.query('source == "internal" and is_new.isna()')['biosample'].tolist()
     missing_isolates.sort(reverse=True)
@@ -772,12 +801,15 @@ def write_final_report(
                     filters = args[i + 1]
             filtered_message = ar.Text(f'Table filtered to only show the following CLASS:SUBCLASS pairs: {filters}')
             amr_blocks.append(filtered_message)
-        amr_table = ar.DataTable(
-            amr_df
-            .sort_values('biosample', ascending=False)
-            .reset_index()
-            .drop(columns='index')
-        )
+        if amr_df.empty:
+            amr_table = ar.Text('No AMR data available.')
+        else:
+            amr_table = ar.DataTable(
+                amr_df
+                .sort_values('biosample', ascending=False)
+                .reset_index()
+                .drop(columns='index')
+            )
         amr_blocks.append(amr_table)
         amr_page = ar.Page(blocks=amr_blocks, title='AMR')
         report_blocks.append(amr_page)

@@ -130,6 +130,9 @@ def isolates_df_from_browser_df(
     Parse DataFrame from --browser-tsv into `isolates_df` DataFrame format.
     The output format should match that from query_isolates().
     """
+    # Strip leading '#' from column names (Pathogen Detection adds '#' to first column)
+    browser_df.columns = browser_df.columns.str.lstrip('#')
+    
     browser_df['isolate_id'] = browser_df['Isolate identifiers'].str.split(',').str[0]
     rename_cols = {
         'isolate_id': 'isolate_id',
@@ -141,7 +144,7 @@ def isolates_df_from_browser_df(
         'Location': 'geo_loc_name',
         'Collection date': 'collection_date',
         'Create date': 'creation_date',
-        '#Organism group': 'taxgroup_name',
+        'Organism group': 'taxgroup_name',
         'Scientific name': 'scientific_name',
         'BioProject': 'bioproject_acc',
         'AMR genotypes': 'amr_genotypes',
