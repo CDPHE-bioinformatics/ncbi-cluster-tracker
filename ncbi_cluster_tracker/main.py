@@ -55,6 +55,7 @@ def main() -> None:
         old_clusters_df = pd.read_csv(old_clusters_glob[0])
         old_isolates_df = pd.read_csv(old_isolates_glob[0])
 
+    no_clusters_message = 'No SNP clusters found for the provided isolates. Exiting.'
     if not args.retry:
         os.environ['NCT_NOW'] = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         os.environ['NCT_OUT_SUBDIR'] = os.path.join(out_dir, os.environ['NCT_NOW'])
@@ -63,6 +64,9 @@ def main() -> None:
             isolates_df, clusters_df = get_clusters(biosamples, args.browser_file)
         else:
             isolates_df, clusters_df = get_clusters(biosamples, 'bigquery')
+        if clusters_df.empty:
+            logger.info(no_clusters_message)
+            return
         download.download_cluster_files(clusters_df, args.keep_snp_files)
     else:
         if not os.path.isdir(out_dir):
@@ -71,6 +75,9 @@ def main() -> None:
         os.environ['NCT_NOW'] = os.path.basename(out_dir.rstrip(os.sep))
         logger.info(f'Retrying with {os.environ["NCT_OUT_SUBDIR"]}')
         isolates_df, clusters_df = get_clusters(biosamples, 'local')
+        if clusters_df.empty:
+            logger.info(no_clusters_message)
+            return
     
     if args.amr:
         amr_ref_df = download.download_amr_reference_file()  
