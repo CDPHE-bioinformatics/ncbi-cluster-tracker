@@ -783,12 +783,21 @@ def write_final_report(
     cluster_report_blocks = [r.report for r in cluster_reports]
     cluster_report_blocks.sort(key=lambda r: r.label, reverse=True)
 
-    report_blocks = [
-        ar.Page(blocks=cluster_page_blocks, title='Clusters'),
-        ar.Page(
+    # ar.Select requires at least 2 items, so handle single cluster differently
+    if len(cluster_report_blocks) > 1:
+        cluster_details_page = ar.Page(
             ar.Select(blocks=cluster_report_blocks, type=ar.SelectType.DROPDOWN),
             title='Cluster details',
-        ),
+        )
+    else:  # len(cluster_report_blocks) == 1
+        cluster_details_page = ar.Page(
+            blocks=cluster_report_blocks,
+            title='Cluster details',
+        )
+
+    report_blocks = [
+        ar.Page(blocks=cluster_page_blocks, title='Clusters'),
+        cluster_details_page,
         ar.Page(blocks=isolate_page_blocks, title='Isolates'),
     ]
 
